@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIFE-LINK | AI-Powered Emergency Medical Resource & Donor Coordination Network</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">
+      <span>❤️ LIFE-LINK</span>
+      <span class="brand-badge">AI EMERGENCY</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link active">Home</a></li>
+      <li><a href="emergency.html" class="nav-link nav-btn-emergency">🚨 Emergency Help</a></li>
+      <li><a href="donor.html" class="nav-link">Become a Donor</a></li>
+      <li><a href="tracker.html" class="nav-link">Track Emergency</a></li>
+      <li><a href="hospital.html" class="nav-link">Hospital</a></li>
+      <li><a href="organ.html" class="nav-link">Organ & Tissue</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <span class="hero-tag">⚡ AI-Powered Emergency Medical Coordination</span>
+      <h1 class="hero-title">Every Second Counts in<br>Medical Emergencies</h1>
+      <p class="hero-desc">
+        Life-Link bridges patients, hospitals, and voluntary blood donors using intelligent proximity matching and adaptive emergency cascades.
+      </p>
+      <div class="hero-actions">
+        <a href="emergency.html" class="btn btn-emergency">🚨 Need Emergency Help Now</a>
+        <a href="donor.html" class="btn btn-primary">🩸 Become a Voluntary Donor</a>
+        <a href="tracker.html" class="btn btn-secondary">📡 Live Command Center</a>
+      </div>
+    </section>
+
+    <!-- Real-time Stats Grid -->
+    <section class="grid-4" style="margin-bottom: 2.5rem;">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total-donors">-</div>
+        <div class="stat-label">Registered Donors</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-available-donors" style="color: var(--accent-green);">-</div>
+        <div class="stat-label">Available Donors</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-active-emergencies" style="color: var(--accent-red);">-</div>
+        <div class="stat-label">Active Emergencies</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-backend-status">Checking...</div>
+        <div class="stat-label">Backend Status</div>
+      </div>
+    </section>
+
+    <!-- How Life-Link Works: Informational Feature Cards -->
+    <section class="card">
+      <h2 style="font-size: 1.55rem; font-weight: 800; margin-bottom: 0.5rem; text-align: center;">How Life-Link Coordinates Emergencies</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; text-align: center; max-width: 650px; margin: 0 auto 1.5rem;">
+        An automated end-to-end pipeline connecting natural-language distress calls with verified nearby donors.
+      </p>
+      
+      <div class="grid-3" style="margin-top: 1rem;">
+        <div class="feature-card">
+          <span class="feature-card-icon">🗣️</span>
+          <h3>1. AI Emergency Understanding</h3>
+          <p>
+            Patients or healthcare staff describe emergencies in natural English, Tamil, or Tanglish. The AI extracts hospital, blood group, component, units, and urgency level with clinical guardrails.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-card-icon">🎯</span>
+          <h3>2. Intelligent Donor Matching</h3>
+          <p>
+            The matching engine evaluates biological ABO/Rh compatibility, verified readiness, and precise geodesic distances via Haversine algorithms to instantly rank the closest suitable voluntary donors.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-card-icon">📡</span>
+          <h3>3. Adaptive Emergency Cascade</h3>
+          <p>
+            Search perimeters expand dynamically (0–5 km immediate vicinity &rarr; 5–15 km extended city &rarr; 15–25 km metro zone) until required units are fulfilled, with automated regional blood bank escalation.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Medical Safety Disclaimer -->
+    <div class="disclaimer-banner">
+      <span style="font-size: 1.25rem;">⚠️</span>
+      <div>
+        <strong>Medical Safety & Prototype Disclaimer:</strong>
+        Life-Link is an emergency medical resource coordination platform designed to accelerate communication and resource discovery. It does not replace professional medical advice, clinical blood-bank cross-matching, or authorized organ allocation authorities.
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Life-Link • AI-Powered Emergency Medical Resource & Donor Coordination Network</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    async function loadStats() {
+      const statusEl = document.getElementById("stat-backend-status");
+      try {
+        const health = await LifeLinkAPI.checkHealth();
+        if (health && health.status === "online") {
+          statusEl.innerText = "Online";
+          statusEl.style.color = "var(--accent-green)";
+        } else {
+          statusEl.innerText = "Offline";
+          statusEl.style.color = "var(--accent-red)";
+        }
+
+        const donors = await LifeLinkAPI.getDonors().catch(() => []);
+        document.getElementById("stat-total-donors").innerText = donors.length;
+        const available = donors.filter(d => d.availability === "AVAILABLE").length;
+        document.getElementById("stat-available-donors").innerText = available;
+
+        const requests = await LifeLinkAPI.getEmergencyRequests().catch(() => []);
+        const active = requests.filter(r => r.status === "SEARCHING" || r.status === "PARTIALLY_FULFILLED" || r.status === "DONOR_ACCEPTED").length;
+        document.getElementById("stat-active-emergencies").innerText = active;
+      } catch (e) {
+        console.warn("Stats load failed:", e);
+        statusEl.innerText = "Offline";
+        statusEl.style.color = "var(--accent-red)";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadStats);
+  </script>
+</body>
+</html>

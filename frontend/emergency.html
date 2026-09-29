@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emergency Request | LIFE-LINK AI</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">
+      <span>❤️ LIFE-LINK</span>
+      <span class="brand-badge">AI EMERGENCY</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="emergency.html" class="nav-link active nav-btn-emergency">🚨 Emergency Help</a></li>
+      <li><a href="donor.html" class="nav-link">Become a Donor</a></li>
+      <li><a href="tracker.html" class="nav-link">Track Emergency</a></li>
+      <li><a href="hospital.html" class="nav-link">Hospital</a></li>
+      <li><a href="organ.html" class="nav-link">Organ & Tissue</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container" style="max-width: 860px;">
+    
+    <div class="page-header">
+      <span class="badge badge-red" style="font-size: 0.82rem; margin-bottom: 0.5rem;">Immediate Coordination</span>
+      <h1 class="page-title">Request Emergency Medical Support</h1>
+      <p class="page-subtitle">
+        Type or speak your request naturally in English, Tanglish, or Tamil. Our AI Assistant extracts and validates the medical parameters.
+      </p>
+    </div>
+
+    <!-- Emergency Natural Language Card -->
+    <div class="card" id="request-input-card">
+      <label class="form-label" style="font-size: 1rem; font-weight: 700;">Describe your emergency in your own words:</label>
+      
+      <!-- Prompt Chips -->
+      <div class="chips-container">
+        <span class="chip" onclick="setPrompt('KMCH la O positive blood rendu units urgent ah venum.')">
+          🇮🇳 Tanglish: "KMCH la O positive blood rendu units urgent ah venum."
+        </span>
+        <span class="chip" onclick="setPrompt('I need 2 units of O positive blood at KMCH urgently.')">
+          🇬🇧 English: "I need 2 units of O positive blood at KMCH urgently."
+        </span>
+        <span class="chip" onclick="setPrompt('KMCH மருத்துவமனையில் O positive இரத்தம் இரண்டு யூனிட் அவசரமாக தேவை.')">
+          🇮🇳 Tamil: "KMCH மருத்துவமனையில் O positive இரத்தம் இரண்டு யூனிட் அவசரமாக தேவை."
+        </span>
+      </div>
+
+      <div style="position: relative;">
+        <textarea id="emergency-input" class="form-control" rows="3" placeholder="e.g. Accident patient-ku O positive blood rendu units urgent-ah venum KMCH la..."></textarea>
+      </div>
+
+      <div style="display: flex; gap: 0.8rem; margin-top: 1rem; align-items: center; flex-wrap: wrap;">
+        <button id="btn-voice" class="btn btn-secondary" type="button" onclick="toggleVoice()">
+          🎙️ <span id="voice-btn-text">Voice Input</span>
+        </button>
+        <button id="btn-parse" class="btn btn-primary" type="button" onclick="handleUnderstand()">
+          🤖 Understand Request
+        </button>
+        <span id="voice-status" style="font-size: 0.85rem; color: var(--text-muted);"></span>
+      </div>
+    </div>
+
+    <!-- AI Understanding Output Card (Hidden initially) -->
+    <div id="ai-result-card" class="card" style="display: none; border-left: 4px solid var(--primary);">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; color: var(--primary);">
+            <span>🤖 AI UNDERSTOOD YOUR REQUEST</span>
+          </h3>
+          <span id="ai-lang-indicator" style="font-size: 0.82rem; color: var(--text-muted);">Multilingual Parser Active &bull; Verified Parameters</span>
+        </div>
+        <span id="ai-status-badge" class="badge badge-green">Ready</span>
+      </div>
+
+      <!-- Missing Information Alert -->
+      <div id="missing-alert" style="display: none; background: #fff1f2; border: 1px solid #fecdd3; color: #be123c; padding: 0.85rem 1rem; border-radius: var(--border-radius-sm); margin-bottom: 1rem;">
+        <strong style="display: block; font-size: 0.92rem;">⚠️ Missing Information Detected:</strong>
+        <p id="missing-text" style="font-size: 0.88rem; margin-top: 0.25rem; line-height: 1.4;"></p>
+      </div>
+
+      <!-- Quick Summary Overview -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; background: #f0f9ff; padding: 0.9rem; border-radius: var(--border-radius-sm); border: 1px solid #bae6fd;">
+        <div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Hospital</span>
+          <div id="summary-hospital" style="font-weight: 800; font-size: 1rem; color: var(--text-main);">-</div>
+        </div>
+        <div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Blood Group</span>
+          <div id="summary-blood" style="font-weight: 800; font-size: 1rem; color: var(--accent-red);">-</div>
+        </div>
+        <div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Component</span>
+          <div id="summary-component" style="font-weight: 800; font-size: 1rem; color: var(--text-main);">-</div>
+        </div>
+        <div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Units Required</span>
+          <div id="summary-units" style="font-weight: 800; font-size: 1rem; color: var(--primary);">-</div>
+        </div>
+        <div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Urgency</span>
+          <div id="summary-urgency" style="font-weight: 800; font-size: 1rem; color: var(--accent-red);">-</div>
+        </div>
+      </div>
+
+      <!-- Extracted Fields Review Form -->
+      <div style="background: var(--bg-alt); padding: 1.2rem; border-radius: var(--border-radius); margin-bottom: 1.2rem;">
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Please review or fine-tune the extracted information before submitting:
+        </p>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Blood Group Required *</label>
+            <input type="text" id="field-blood-group" class="form-control" placeholder="e.g. O+">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Units Needed *</label>
+            <input type="number" id="field-units" class="form-control" placeholder="e.g. 2" min="1" max="20">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hospital Name *</label>
+            <input type="text" id="field-hospital" class="form-control" placeholder="e.g. KMCH">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Urgency Priority</label>
+            <select id="field-urgency" class="form-control">
+              <option value="CRITICAL">CRITICAL (Immediate Trauma)</option>
+              <option value="URGENT">URGENT (Needed Soon)</option>
+              <option value="NORMAL">NORMAL (Scheduled Procedure)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Component</label>
+            <select id="field-component" class="form-control">
+              <option value="whole_blood">Whole Blood</option>
+              <option value="packed_rbc">Packed RBC</option>
+              <option value="platelets">Platelets</option>
+              <option value="plasma">Plasma</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contact Phone</label>
+            <input type="text" id="field-phone" class="form-control" value="+91 94433 12345">
+          </div>
+        </div>
+      </div>
+
+      <!-- Safety Notice -->
+      <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem; background: #fffbeb; padding: 0.6rem 0.9rem; border-radius: var(--border-radius-sm); border: 1px solid #fde68a;">
+        <span>ℹ️</span>
+        <span>AI assists with request understanding. It does not replace clinical or blood-bank compatibility verification.</span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 1rem; justify-content: flex-end; flex-wrap: wrap;">
+        <button class="btn btn-secondary" type="button" onclick="resetForm()">✏️ Edit Input</button>
+        <button id="btn-confirm" class="btn btn-emergency" type="button" onclick="confirmEmergencyRequest()">
+          🚨 Confirm Emergency Request
+        </button>
+      </div>
+    </div>
+
+    <!-- Success Confirmation Card (Hidden initially) -->
+    <div id="confirmation-card" class="card confirmation-card" style="display: none;">
+      <div style="font-size: 2.6rem; margin-bottom: 0.5rem;">✅</div>
+      <h2 style="font-size: 1.6rem; font-weight: 800; color: #065f46; margin-bottom: 0.4rem;">
+        Emergency Request Created Successfully!
+      </h2>
+      <p style="color: #047857; font-size: 1.05rem; margin-bottom: 1.2rem;">
+        Emergency Request <strong id="confirmed-req-id">#--</strong> has been registered and entered the Life-Link matching pipeline.
+      </p>
+
+      <div style="background: white; border: 1px solid #a7f3d0; border-radius: var(--border-radius-sm); padding: 1rem; max-width: 480px; margin: 0 auto 1.5rem; text-align: left; font-size: 0.9rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+          <span style="color: var(--text-muted);">Hospital:</span>
+          <strong id="conf-hospital">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+          <span style="color: var(--text-muted);">Blood Needed:</span>
+          <strong id="conf-blood">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+          <span style="color: var(--text-muted);">Units Required:</span>
+          <strong id="conf-units">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">Pipeline Status:</span>
+          <span class="badge badge-blue">SEARCHING (Round 1)</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a id="btn-track-emergency" href="tracker.html" class="btn btn-emergency">
+          📡 Track Emergency Now
+        </a>
+        <button class="btn btn-secondary" onclick="startNewRequest()">
+          ➕ Submit Another Request
+        </button>
+      </div>
+    </div>
+
+    <!-- Safety Disclaimer -->
+    <div class="disclaimer-banner">
+      <span>⚠️</span>
+      <div>
+        <strong>Emergency Protocol:</strong> If the patient is in immediate life-threatening danger, call national emergency services (108/112) or the hospital emergency room immediately. Life-Link facilitates coordination alongside clinical protocols.
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Life-Link • AI-Powered Emergency Medical Resource & Donor Coordination Network</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    let isListening = false;
+
+    function setPrompt(text) {
+      document.getElementById("emergency-input").value = text;
+      handleUnderstand();
+    }
+
+    function toggleVoice() {
+      const voiceText = document.getElementById("voice-btn-text");
+      const statusText = document.getElementById("voice-status");
+
+      if (isListening) {
+        SpeechHelper.stop();
+        isListening = false;
+        voiceText.innerText = "Voice Input";
+        statusText.innerText = "";
+        return;
+      }
+
+      statusText.innerText = "Listening... Speak in English, Tamil, or Tanglish";
+      voiceText.innerText = "Stop Listening";
+      isListening = true;
+
+      SpeechHelper.start(
+        (transcript) => {
+          document.getElementById("emergency-input").value = transcript;
+          statusText.innerText = "Speech captured!";
+          handleUnderstand();
+        },
+        (err) => {
+          statusText.innerText = err;
+          isListening = false;
+          voiceText.innerText = "Voice Input";
+        },
+        () => {
+          isListening = false;
+          voiceText.innerText = "Voice Input";
+        }
+      );
+    }
+
+    // Dynamic real-time synchronization & validation of CURRENT review form values
+    function syncAndValidateReviewForm() {
+      const bloodInput = document.getElementById("field-blood-group");
+      const unitsInput = document.getElementById("field-units");
+      const hospitalInput = document.getElementById("field-hospital");
+      const urgencyInput = document.getElementById("field-urgency");
+      const componentInput = document.getElementById("field-component");
+
+      const bloodGroup = (bloodInput?.value || "").trim().toUpperCase();
+      const unitsVal = (unitsInput?.value || "").trim();
+      const units = parseInt(unitsVal, 10);
+      const hospital = (hospitalInput?.value || "").trim();
+      const urgency = urgencyInput?.value || "URGENT";
+      const component = componentInput?.value || "whole_blood";
+
+      // Live update quick summary cards
+      const sumHosp = document.getElementById("summary-hospital");
+      const sumBlood = document.getElementById("summary-blood");
+      const sumComp = document.getElementById("summary-component");
+      const sumUnits = document.getElementById("summary-units");
+      const sumUrg = document.getElementById("summary-urgency");
+
+      if (sumHosp) sumHosp.innerText = hospital || "Missing";
+      if (sumBlood) {
+        sumBlood.innerText = bloodGroup || "Missing";
+        sumBlood.style.color = bloodGroup ? "var(--text-main)" : "var(--accent-red)";
+      }
+      if (sumComp) sumComp.innerText = component.replace(/_/g, " ");
+      if (sumUnits) sumUnits.innerText = (!isNaN(units) && units > 0) ? units : "Missing";
+      if (sumUrg) sumUrg.innerText = urgency;
+
+      // Identify missing fields based strictly on CURRENT values
+      const missingFields = [];
+      if (!hospital) missingFields.push("hospital name");
+      if (!bloodGroup) missingFields.push("blood group (e.g. O+, A-, B+)");
+      if (isNaN(units) || units <= 0) missingFields.push("valid units (at least 1)");
+
+      const missingAlert = document.getElementById("missing-alert");
+      const statusBadge = document.getElementById("ai-status-badge");
+      const confirmBtn = document.getElementById("btn-confirm");
+
+      if (missingFields.length > 0) {
+        if (missingAlert) {
+          missingAlert.style.display = "block";
+          document.getElementById("missing-text").innerText = 
+            `Please provide required information: ${missingFields.join(", ")}.`;
+        }
+        if (statusBadge) {
+          statusBadge.innerText = "Incomplete";
+          statusBadge.className = "badge badge-amber";
+        }
+      } else {
+        if (missingAlert) missingAlert.style.display = "none";
+        if (statusBadge) {
+          statusBadge.innerText = "Ready to Confirm";
+          statusBadge.className = "badge badge-green";
+        }
+      }
+
+      // Ensure button is always interactive and responsive
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+      }
+
+      return missingFields;
+    }
+
+    async function handleUnderstand() {
+      const input = document.getElementById("emergency-input").value.trim();
+      if (!input) {
+        showToast("Please enter an emergency description in English, Tanglish, or Tamil.", "warning");
+        return;
+      }
+
+      const parseBtn = document.getElementById("btn-parse");
+      parseBtn.disabled = true;
+      parseBtn.innerText = "Understanding...";
+
+      try {
+        const result = await LifeLinkAPI.parseAIRequest(input, false);
+        const card = document.getElementById("ai-result-card");
+        card.style.display = "block";
+
+        const parsed = result.parsed_request || {};
+        
+        // Populate editable review fields with initial AI output
+        document.getElementById("field-blood-group").value = parsed.blood_group || "";
+        document.getElementById("field-units").value = parsed.units_required || "";
+        document.getElementById("field-hospital").value = parsed.hospital_name || "";
+        document.getElementById("field-urgency").value = parsed.urgency || "URGENT";
+        document.getElementById("field-component").value = parsed.component || "whole_blood";
+        if (parsed.contact_phone) {
+          document.getElementById("field-phone").value = parsed.contact_phone;
+        }
+
+        // Live synchronize summary & validation with the populated inputs
+        syncAndValidateReviewForm();
+
+        card.scrollIntoView({ behavior: 'smooth' });
+      } catch (err) {
+        showToast("Failed to parse request: " + err.message, "error");
+      } finally {
+        parseBtn.disabled = false;
+        parseBtn.innerText = "🤖 Understand Request";
+      }
+    }
+
+    async function confirmEmergencyRequest() {
+      // 1. Re-validate CURRENT form values (ignoring any stale initial parser state)
+      const missingFields = syncAndValidateReviewForm();
+      if (missingFields.length > 0) {
+        showToast(`Please fill in required fields: ${missingFields.join(", ")}`, "warning");
+        return;
+      }
+
+      // 2. Read CURRENT input values from DOM
+      const bloodGroup = document.getElementById("field-blood-group").value.trim().toUpperCase();
+      const units = parseInt(document.getElementById("field-units").value, 10);
+      const hospital = document.getElementById("field-hospital").value.trim();
+      const urgency = document.getElementById("field-urgency").value || "URGENT";
+      const component = document.getElementById("field-component").value || "whole_blood";
+      const phone = document.getElementById("field-phone").value.trim() || "+91 94433 00000";
+      const rawText = document.getElementById("emergency-input").value.trim();
+
+      const confirmBtn = document.getElementById("btn-confirm");
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = "Creating Emergency Request...";
+      }
+
+      try {
+        const payload = {
+          hospital_name: hospital,
+          blood_group: bloodGroup,
+          units_needed: units,
+          urgency: urgency,
+          component: component,
+          contact_phone: phone,
+          notes: rawText ? `Created via Life-Link AI Emergency Interface: "${rawText}"` : "Emergency request"
+        };
+
+        // 3. Create emergency request using existing backend endpoint (POST /emergency-requests)
+        const created = await LifeLinkAPI.createEmergencyRequest(payload);
+        
+        // 4. Populate and display post-creation confirmation card
+        document.getElementById("confirmed-req-id").innerText = `#${created.id}`;
+        document.getElementById("conf-hospital").innerText = created.hospital_name;
+        document.getElementById("conf-blood").innerText = `${created.blood_group} (${created.component.replace(/_/g, ' ')})`;
+        document.getElementById("conf-units").innerText = `${created.units_needed} Unit(s)`;
+        
+        const trackLink = document.getElementById("btn-track-emergency");
+        if (trackLink) {
+          trackLink.href = `tracker.html?id=${created.id}`;
+        }
+
+        document.getElementById("ai-result-card").style.display = "none";
+        document.getElementById("request-input-card").style.display = "none";
+        document.getElementById("confirmation-card").style.display = "block";
+
+        showToast(`Emergency Request #${created.id} registered!`, "success");
+        document.getElementById("confirmation-card").scrollIntoView({ behavior: 'smooth' });
+
+      } catch (err) {
+        showToast("Failed to create emergency: " + err.message, "error");
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.innerText = "🚨 Confirm Emergency Request";
+        }
+      }
+    }
+
+    function resetForm() {
+      document.getElementById("ai-result-card").style.display = "none";
+      document.getElementById("emergency-input").focus();
+    }
+
+    function startNewRequest() {
+      document.getElementById("confirmation-card").style.display = "none";
+      document.getElementById("ai-result-card").style.display = "none";
+      document.getElementById("request-input-card").style.display = "block";
+      document.getElementById("emergency-input").value = "";
+      document.getElementById("emergency-input").focus();
+    }
+
+    // Attach real-time synchronization listeners to all editable review fields
+    document.addEventListener("DOMContentLoaded", () => {
+      const reviewInputs = [
+        "field-blood-group",
+        "field-units",
+        "field-hospital",
+        "field-urgency",
+        "field-component",
+        "field-phone"
+      ];
+
+      reviewInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener("input", syncAndValidateReviewForm);
+          el.addEventListener("change", syncAndValidateReviewForm);
+        }
+      });
+
+      const confirmBtn = document.getElementById("btn-confirm");
+      if (confirmBtn) {
+        confirmBtn.onclick = confirmEmergencyRequest;
+      }
+    });
+  </script>
+</body>
+</html>

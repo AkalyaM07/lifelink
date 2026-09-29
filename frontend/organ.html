@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIFE-LINK | Organ & Tissue Donation Awareness</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .organ-hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      border: 1px solid rgba(99, 179, 237, 0.2);
+      border-radius: 16px;
+      padding: 2.8rem 1.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .organ-hero h1 { font-size: 2.3rem; color: #90cdf4; margin-bottom: 0.6rem; letter-spacing: -0.5px; }
+    .organ-hero p  { color: #a0aec0; max-width: 700px; margin: 0 auto 1.5rem; line-height: 1.65; }
+
+    .disclaimer-box {
+      background: rgba(245, 101, 101, 0.08);
+      border: 2px solid rgba(245, 101, 101, 0.4);
+      border-radius: 12px;
+      padding: 1.3rem 1.6rem;
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .disclaimer-box .icon { font-size: 2rem; flex-shrink: 0; }
+    .disclaimer-box h3 { color: #fc8181; margin: 0 0 0.4rem; font-size: 1.05rem; font-weight: 700; }
+    .disclaimer-box p  { color: #475569; margin: 0; font-size: 0.92rem; line-height: 1.6; }
+
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+
+    .info-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .info-card .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .info-card h3 { color: var(--text-main); margin: 0 0 0.5rem; font-size: 1.05rem; font-weight: 700; }
+    .info-card p  { color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin: 0; }
+
+    .step-list { list-style: none; padding: 0; margin: 0; }
+    .step-list li {
+      display: flex; gap: 1rem; align-items: flex-start;
+      padding: 0.85rem 0; border-bottom: 1px solid var(--border-color);
+    }
+    .step-list li:last-child { border-bottom: none; }
+    .step-num {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 800; flex-shrink: 0;
+    }
+    .step-text { color: var(--text-muted); font-size: 0.92rem; line-height: 1.55; }
+    .step-text strong { color: var(--text-main); }
+
+    .authority-card {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.4rem;
+      display: flex; gap: 1.2rem; align-items: flex-start;
+      box-shadow: var(--shadow-sm);
+    }
+    .authority-icon { font-size: 2.2rem; flex-shrink: 0; }
+    .authority-card h3 { color: var(--text-main); margin: 0 0 0.3rem; font-size: 1.1rem; font-weight: 700; }
+    .authority-card p  { color: var(--text-muted); margin: 0 0 0.75rem; font-size: 0.86rem; line-height: 1.45; }
+    .authority-card a  { color: var(--primary); font-size: 0.88rem; text-decoration: none; font-weight: 600; }
+    .authority-card a:hover { text-decoration: underline; }
+
+    .organ-types-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .organ-chip {
+      background: var(--bg-alt);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.7rem 0.75rem;
+      text-align: center;
+      font-size: 0.84rem;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+    .organ-chip span { display: block; font-size: 1.4rem; margin-bottom: 0.2rem; }
+
+    .request-form-section { margin-top: 2rem; }
+    .form-note {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 8px;
+      padding: 0.9rem 1.2rem;
+      color: #065f46;
+      font-size: 0.88rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.55;
+    }
+
+    .btn-outline-blue {
+      background: transparent;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 0.65rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .btn-outline-blue:hover { background: var(--primary-light); }
+
+    .success-banner {
+      display: none;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 10px;
+      padding: 1.4rem;
+      color: #065f46;
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">
+      <span>❤️ LIFE-LINK</span>
+      <span class="brand-badge">ORGAN AWARENESS</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="emergency.html" class="nav-link nav-btn-emergency">🚨 Emergency Help</a></li>
+      <li><a href="donor.html" class="nav-link">Become a Donor</a></li>
+      <li><a href="tracker.html" class="nav-link">Track Emergency</a></li>
+      <li><a href="hospital.html" class="nav-link">Hospital</a></li>
+      <li><a href="organ.html" class="nav-link active">Organ & Tissue</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+
+    <!-- Hero -->
+    <div class="organ-hero">
+      <div style="font-size: 3rem; margin-bottom: 0.75rem;">🫀</div>
+      <h1>Organ &amp; Tissue Donation Awareness</h1>
+      <p>
+        Organ donation is a life-saving humanitarian act strictly regulated by authorized government networks.
+        Life-Link supports awareness, education, and proper statutory routing &mdash; not independent organ allocation.
+      </p>
+      <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+        <a href="#learn" class="btn btn-primary">📚 Learn About Donation</a>
+        <a href="#request" class="btn btn-secondary">📋 Submit an Enquiry</a>
+      </div>
+    </div>
+
+    <!-- Mandatory Regulatory Disclaimer -->
+    <div class="disclaimer-box">
+      <div class="icon">⚠️</div>
+      <div>
+        <h3>STATUTORY NOTICE &bull; How Organ Donation Works</h3>
+        <p>
+          Unlike voluntary whole blood donation, organ and tissue matching is an intensely regulated medical, legal, and ethical process governed strictly by authorized transplant authorities including <strong>NOTTO</strong> (National Organ &amp; Tissue Transplant Organisation &bull; Ministry of Health &amp; Family Welfare, India) and <strong>TNOS / TRANSTAN</strong> (Tamil Nadu Organ Sharing &bull; Zonal Transplant Coordination Centre).
+          <br><br>
+          <strong>Life-Link does NOT:</strong> match patients with organ donors, maintain an independent organ waitlist, calculate distance-based organ allocation, or replace authorized government transplant coordination systems. All enquiries submitted here are recorded purely for informational routing to verified statutory authorities.
+        </p>
+      </div>
+    </div>
+
+    <!-- What Can Be Donated -->
+    <section id="learn" class="card" style="margin-bottom: 1.5rem;">
+      <h2 style="margin-bottom: 0.3rem; font-size: 1.4rem;">🫁 What Can Be Donated?</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+        A single deceased organ donor can save up to 8 lives and restore vision and mobility for up to 75 individuals through tissue donation.
+      </p>
+      <div class="organ-types-grid">
+        <div class="organ-chip"><span>❤️</span>Heart</div>
+        <div class="organ-chip"><span>🫁</span>Lungs</div>
+        <div class="organ-chip"><span>🟤</span>Liver</div>
+        <div class="organ-chip"><span>🫘</span>Kidneys</div>
+        <div class="organ-chip"><span>🟡</span>Pancreas</div>
+        <div class="organ-chip"><span>🔵</span>Intestines</div>
+        <div class="organ-chip"><span>👁️</span>Corneas</div>
+        <div class="organ-chip"><span>🦴</span>Bones</div>
+        <div class="organ-chip"><span>🩹</span>Skin</div>
+        <div class="organ-chip"><span>💗</span>Heart Valves</div>
+        <div class="organ-chip"><span>🩸</span>Blood Vessels</div>
+        <div class="organ-chip"><span>🧬</span>Tendons</div>
+      </div>
+    </section>
+
+    <!-- Two-column Info Grid -->
+    <div class="info-grid">
+
+      <!-- Deceased vs Living Donation -->
+      <div class="info-card">
+        <div class="card-icon">⚖️</div>
+        <h3>Types of Organ Donation</h3>
+        <p>
+          <strong style="color: var(--primary);">Deceased Donation (Cadaveric):</strong><br>
+          Organs are retrieved after certified Brain Stem Death (BSD). Mandatory family consent is verified. Managed exclusively by NOTTO and state ZTCC networks.
+          <br><br>
+          <strong style="color: var(--primary);">Living Donation:</strong><br>
+          A living person can donate one kidney or a segment of their liver, primarily to immediate family members, under rigorous ethics committee authorization.
+        </p>
+      </div>
+
+      <!-- Who Can Pledge -->
+      <div class="info-card">
+        <div class="card-icon">✅</div>
+        <h3>Who Can Pledge to Donate?</h3>
+        <p>
+          Any individual aged 18 or above can register an organ donor pledge regardless of chronic conditions. Suitability is evaluated medically at the exact time of donation by authorized transplant teams.
+          <br><br>
+          Pledging is an expression of intent &mdash; your family should be informed so they can honor your wishes when the time arrives.
+        </p>
+      </div>
+
+      <!-- Myths Debunked -->
+      <div class="info-card">
+        <div class="card-icon">🔍</div>
+        <h3>Common Myths &bull; Debunked</h3>
+        <p>
+          <strong style="color: var(--accent-red);">Myth:</strong> Emergency doctors won't prioritize saving me if I'm a pledged donor.<br>
+          <strong style="color: var(--accent-green);">Fact:</strong> Emergency teams are entirely separate from transplant teams; patient care is always the absolute priority.<br><br>
+          <strong style="color: var(--accent-red);">Myth:</strong> Organ retrieval disfigures the body.<br>
+          <strong style="color: var(--accent-green);">Fact:</strong> Retrieval is performed with sterile surgical precision with utmost dignity and care.
+        </p>
+      </div>
+
+      <!-- Brain Death -->
+      <div class="info-card">
+        <div class="card-icon">🧠</div>
+        <h3>Understanding Brain Stem Death</h3>
+        <p>
+          Brain Stem Death (BSD) signifies the permanent, irreversible cessation of all brain stem functions. Certified by a panel of four independent medical experts as mandated by the Transplantation of Human Organs and Tissues Act (THOTA), 1994.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Official Registration Pathway -->
+    <section class="card" style="margin-bottom: 1.5rem;">
+      <h2 style="margin-bottom: 1rem; font-size: 1.35rem;">📝 How to Pledge as an Organ Donor in India</h2>
+      <ul class="step-list">
+        <li>
+          <div class="step-num">1</div>
+          <div class="step-text">
+            <strong>Visit the NOTTO National Portal</strong> &mdash; Navigate to
+            <a href="https://notto.mohfw.gov.in" target="_blank" rel="noopener" style="color: var(--primary); font-weight: 600;">notto.mohfw.gov.in</a>
+            (National Organ &amp; Tissue Transplant Organisation &bull; Government of India).
+          </div>
+        </li>
+        <li>
+          <div class="step-num">2</div>
+          <div class="step-text">
+            <strong>Complete the Statutory Pledge Form</strong> &mdash; Register your details and choose the organs/tissues you wish to pledge.
+          </div>
+        </li>
+        <li>
+          <div class="step-num">3</div>
+          <div class="step-text">
+            <strong>Obtain Your Official Donor Card</strong> &mdash; Download, print, and keep your official government donor card with your emergency identification.
+          </div>
+        </li>
+        <li>
+          <div class="step-num">4</div>
+          <div class="step-text">
+            <strong>Inform Your Family</strong> &mdash; The essential step: discuss your choice with immediate family members since statutory consent is legally required.
+          </div>
+        </li>
+        <li>
+          <div class="step-num">5</div>
+          <div class="step-text">
+            <strong>Tamil Nadu Residents</strong> &mdash; Also register with
+            <a href="https://www.tnos.org" target="_blank" rel="noopener" style="color: var(--primary); font-weight: 600;">tnos.org</a>
+            (TRANSTAN / ZTCC Tamil Nadu).
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Authorised Transplant Authorities -->
+    <section style="margin-bottom: 2rem;">
+      <h2 style="margin-bottom: 1rem; font-size: 1.35rem;">🏥 Authorised Government Coordination Authorities</h2>
+      <div class="info-grid" style="gap: 1rem;">
+
+        <div class="authority-card">
+          <div class="authority-icon">🇮🇳</div>
+          <div>
+            <h3>NOTTO</h3>
+            <p>National Organ &amp; Tissue Transplant Organisation<br>Ministry of Health &amp; Family Welfare, India</p>
+            <a href="https://notto.mohfw.gov.in" target="_blank" rel="noopener">🔗 notto.mohfw.gov.in</a><br>
+            <a href="tel:1800114770">📞 1800-11-4770 (24x7 Toll-free)</a>
+          </div>
+        </div>
+
+        <div class="authority-card">
+          <div class="authority-icon">🌐</div>
+          <div>
+            <h3>TNOS / TRANSTAN</h3>
+            <p>Transplant Authority of Tamil Nadu<br>Government of Tamil Nadu</p>
+            <a href="https://www.tnos.org" target="_blank" rel="noopener">🔗 tnos.org</a><br>
+            <a href="tel:04428193060">📞 044-2819 3060</a>
+          </div>
+        </div>
+
+        <div class="authority-card">
+          <div class="authority-icon">👁️</div>
+          <div>
+            <h3>Eye Donation Network</h3>
+            <p>Aravind Eye Care System &amp; Government Regional Eye Banks</p>
+            <a href="https://www.aravind.org/eye-donation" target="_blank" rel="noopener">🔗 aravind.org/eye-donation</a><br>
+            <a href="tel:1919">📞 1919 (National Eye Donation Line)</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Organ/Tissue Information Request Form -->
+    <section id="request" class="request-form-section card">
+      <h2 style="margin-bottom: 0.3rem; font-size: 1.35rem;">📋 Submit an Organ / Tissue Coordination Enquiry</h2>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
+        Hospital administrators or patient families may submit enquiries to connect with appropriate regional coordination officers.
+        <strong style="color: var(--accent-red);"> This is NOT an automated allocation system.</strong>
+      </p>
+
+      <div class="form-note">
+        ✅ Your enquiry will be logged for administrative routing to certified statutory authorities (NOTTO / TRANSTAN). Life-Link does not perform direct organ procurement or waitlisting. Please contact NOTTO or TRANSTAN directly for urgent time-sensitive cases.
+      </div>
+
+      <form id="organEnquiryForm">
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Contact Person Name *</label>
+            <input type="text" id="enq-name" class="form-control" placeholder="Contact person's name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
+            <input type="tel" id="enq-phone" class="form-control" placeholder="+91 98765 43210" required>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Hospital / Institution *</label>
+            <input type="text" id="enq-hospital" class="form-control" placeholder="e.g. KMCH, PSG Hospitals, CMC" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">City / District *</label>
+            <input type="text" id="enq-city" class="form-control" placeholder="e.g. Coimbatore" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Enquiry Category *</label>
+          <select id="enq-type" class="form-control" required>
+            <option value="">-- Select enquiry category --</option>
+            <option value="patient_need">Patient requires organ/tissue pathway guidance</option>
+            <option value="become_donor">Individual wanting to register as statutory donor</option>
+            <option value="deceased_donation">Hospital/family reporting potential deceased donation</option>
+            <option value="hospital_coordination">Hospital seeking official NOTTO/TRANSTAN linkage</option>
+            <option value="general_info">General procedural information request</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Organs / Tissues of Interest</label>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem;" id="organCheckboxes">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Details / Clinical Context</label>
+          <textarea id="enq-details" class="form-control" rows="3"
+            placeholder="Describe the situation or questions. Please include patient's ABO blood group if relevant."></textarea>
+        </div>
+
+        <div style="margin-top: 1.5rem; display: flex; gap: 0.8rem; flex-wrap: wrap;">
+          <button type="submit" class="btn btn-primary">📨 Submit Administrative Enquiry</button>
+          <button type="button" class="btn-outline-blue" onclick="window.open('https://notto.mohfw.gov.in', '_blank')">
+            🔗 National NOTTO Portal
+          </button>
+          <button type="button" class="btn-outline-blue" onclick="window.open('https://www.tnos.org', '_blank')">
+            🔗 TNOS / TRANSTAN
+          </button>
+        </div>
+      </form>
+
+      <!-- Success confirmation banner -->
+      <div class="success-banner" id="successBanner">
+        <div style="font-size: 2.2rem; margin-bottom: 0.4rem;">✅</div>
+        <strong style="font-size: 1.1rem; color: #065f46;">Enquiry Recorded Successfully</strong><br>
+        <p id="successText" style="margin: 0.6rem auto; max-width: 600px; font-size: 0.9rem; color: #047857;"></p>
+        <p style="font-size: 0.84rem; color: #059669;">
+          <strong>For critical patient emergencies, contact official authorities immediately:</strong><br>
+          <a href="https://notto.mohfw.gov.in" target="_blank" style="color: #065f46; font-weight: 700;">NOTTO (1800-11-4770)</a> &nbsp;|&nbsp;
+          <a href="https://www.tnos.org" target="_blank" style="color: #065f46; font-weight: 700;">TRANSTAN (044-2819 3060)</a>
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Life-Link • AI-Powered Emergency Medical Resource & Donor Coordination Network</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    const organOptions = [
+      { emoji: "❤️", label: "Heart" },
+      { emoji: "🫁", label: "Lungs" },
+      { emoji: "🟤", label: "Liver" },
+      { emoji: "🫘", label: "Kidney" },
+      { emoji: "🟡", label: "Pancreas" },
+      { emoji: "👁️", label: "Corneas" },
+      { emoji: "🦴", label: "Bone" },
+      { emoji: "🩹", label: "Skin" },
+      { emoji: "💗", label: "Heart Valves" }
+    ];
+
+    const checkboxContainer = document.getElementById("organCheckboxes");
+    organOptions.forEach(organ => {
+      const label = document.createElement("label");
+      label.style.cssText = "display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg-alt); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.35rem 0.75rem; cursor: pointer; color: var(--text-main); font-size: 0.85rem;";
+      label.innerHTML = `<input type="checkbox" value="${organ.label}" style="accent-color: var(--primary);"> ${organ.emoji} ${organ.label}`;
+      checkboxContainer.appendChild(label);
+    });
+
+    document.getElementById("organEnquiryForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById("enq-name").value.trim();
+      const phone = document.getElementById("enq-phone").value.trim();
+      const hospital = document.getElementById("enq-hospital").value.trim();
+      const city = document.getElementById("enq-city").value.trim();
+      const type = document.getElementById("enq-type").value;
+      const details = document.getElementById("enq-details").value.trim();
+
+      if (!name || !phone || !hospital || !city || !type) {
+        showToast("Please fill in all required fields.", "warning");
+        return;
+      }
+
+      const selectedOrgans = Array.from(
+        document.querySelectorAll("#organCheckboxes input[type=checkbox]:checked")
+      ).map(cb => cb.value);
+
+      console.log("[Life-Link Organ Awareness Enquiry]", { name, phone, hospital, city, type, selectedOrgans, details });
+
+      document.getElementById("successText").textContent =
+        `Thank you, ${name}. Your procedural enquiry regarding ${hospital}, ${city} has been logged. ` +
+        `Please consult NOTTO or TRANSTAN directly for time-sensitive organ allocations.`;
+
+      document.getElementById("successBanner").style.display = "block";
+      document.getElementById("organEnquiryForm").style.display = "none";
+      showToast("Enquiry recorded. Please also contact NOTTO/TRANSTAN directly.", "success");
+    });
+  </script>
+</body>
+</html>

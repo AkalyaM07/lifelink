@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env
+
+# Database files (SQLite) — fresh DB is auto-created on startup
+*.db
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Pytest cache
+.pytest_cache/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# Secrets / credentials
+.env
+.env.local
+.env.production

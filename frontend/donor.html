@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donor Portal & Response Network | LIFE-LINK</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">
+      <span>❤️ LIFE-LINK</span>
+      <span class="brand-badge">DONOR PORTAL</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="emergency.html" class="nav-link nav-btn-emergency">🚨 Emergency Help</a></li>
+      <li><a href="donor.html" class="nav-link active">Become a Donor</a></li>
+      <li><a href="tracker.html" class="nav-link">Track Emergency</a></li>
+      <li><a href="hospital.html" class="nav-link">Hospital</a></li>
+      <li><a href="organ.html" class="nav-link">Organ & Tissue</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container">
+    
+    <div class="page-header">
+      <h1 class="page-title">🩸 Voluntary Donor Network</h1>
+      <p class="page-subtitle">Register to save lives, manage your readiness status, and respond to incoming hospital emergency calls.</p>
+    </div>
+
+    <!-- 2 Column Layout: Donor Profile / Alerts & Registration -->
+    <div class="grid-2">
+
+      <!-- Left Column: Donor Dashboard & Incoming Alerts -->
+      <div>
+        
+        <!-- Active Donor Switcher & Profile Card -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem;">
+            <h3 style="font-size: 1.18rem; font-weight: 700;">👤 Active Donor Profile</h3>
+            <span id="donor-status-badge" class="badge badge-green">AVAILABLE</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0.8rem;">
+            <label class="form-label">Select Registered Donor Profile:</label>
+            <select id="select-donor" class="form-control" onchange="onSelectDonor(this.value)">
+              <option value="">Loading donors...</option>
+            </select>
+          </div>
+
+          <div id="donor-profile-details" style="background: var(--bg-alt); padding: 1rem; border-radius: var(--border-radius-sm); margin-bottom: 1rem; border: 1px solid var(--border-color);">
+            <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-main);" id="d-name">Loading...</div>
+            <div style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.3rem;" id="d-details">
+              Blood Group: -- &bull; Locality: --
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-light); margin-top: 0.2rem;" id="d-privacy">
+              🔒 Privacy Protected &bull; Contact info masked
+            </div>
+          </div>
+
+          <!-- Availability Toggle -->
+          <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+            <span style="font-size: 0.86rem; font-weight: 600; color: var(--text-main);">Update Availability:</span>
+            <button class="btn btn-secondary btn-sm" onclick="setAvailability('AVAILABLE')">🟢 AVAILABLE</button>
+            <button class="btn btn-secondary btn-sm" onclick="setAvailability('UNAVAILABLE')">🔴 UNAVAILABLE</button>
+          </div>
+        </div>
+
+        <!-- Incoming Emergency Requests For This Donor -->
+        <div class="card" style="border-top: 4px solid var(--accent-red);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h3 style="font-size: 1.18rem; font-weight: 800;">🚨 Compatible Emergency Alerts</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">Urgent requests compatible with this donor's blood group</p>
+            </div>
+            <span class="badge badge-red" id="alert-count-badge">0 Alerts</span>
+          </div>
+
+          <!-- Notification List Container -->
+          <div id="donor-notifications-container" style="display: flex; flex-direction: column; gap: 0.9rem;">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Checking active emergencies...</p>
+          </div>
+
+          <!-- Clarification Note -->
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 1rem; border-top: 1px dashed var(--border-color); padding-top: 0.6rem;">
+            * Acceptance registers your intent to respond to this emergency. Clinical cross-matching will be completed at the hospital facility.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Right Column: New Donor Registration Form -->
+      <div>
+        <div class="card">
+          <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.3rem;">➕ Register as a Voluntary Donor</h3>
+          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.2rem;">
+            Join the Life-Link emergency response coordination network in your district.
+          </p>
+
+          <form id="form-register-donor" onsubmit="handleDonorRegister(event)">
+            <div class="form-group">
+              <label class="form-label">Full Name *</label>
+              <input type="text" id="reg-name" class="form-control" placeholder="e.g. Ramesh Chandran" required>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Phone Number *</label>
+                <input type="tel" id="reg-phone" class="form-control" placeholder="+91 98421 99999" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Blood Group *</label>
+                <select id="reg-blood" class="form-control" required>
+                  <option value="O+">O+</option>
+                  <option value="O-">O- (Universal Donor)</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+ (Universal Recipient)</option>
+                  <option value="AB-">AB-</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Approximate Area / Locality</label>
+                <input type="text" id="reg-city" class="form-control" placeholder="e.g. Peelamedu, Coimbatore" value="Coimbatore">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Initial Readiness Status</label>
+                <select id="reg-avail" class="form-control">
+                  <option value="AVAILABLE">AVAILABLE (Ready to respond)</option>
+                  <option value="MAYBE_AVAILABLE">MAYBE AVAILABLE</option>
+                  <option value="UNAVAILABLE">UNAVAILABLE</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Donation Type</label>
+              <select id="reg-type" class="form-control">
+                <option value="whole_blood">Whole Blood (Standard)</option>
+                <option value="platelets">Platelets (Single Donor Platelet)</option>
+                <option value="plasma">Plasma</option>
+                <option value="packed_rbc">Packed RBC</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+              🩸 Complete Donor Registration
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Life-Link • AI-Powered Emergency Medical Resource & Donor Coordination Network</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    let donorsList = [];
+    let currentDonor = null;
+
+    function maskPhone(phone) {
+      if (!phone) return "+91 ••••• •••••";
+      const clean = phone.trim();
+      if (clean.length > 6) {
+        return clean.substring(0, 6) + " •••••";
+      }
+      return clean;
+    }
+
+    async function initDonorPage() {
+      try {
+        donorsList = await LifeLinkAPI.getDonors();
+        const select = document.getElementById("select-donor");
+        select.innerHTML = "";
+
+        if (!donorsList || donorsList.length === 0) {
+          select.innerHTML = "<option value=''>No registered donors found</option>";
+          document.getElementById("d-name").innerText = "No Donors Registered";
+          return;
+        }
+
+        donorsList.forEach(d => {
+          const opt = document.createElement("option");
+          opt.value = d.id;
+          opt.innerText = `${d.name} (${d.blood_group}) — ${d.availability}`;
+          select.appendChild(opt);
+        });
+
+        currentDonor = donorsList[0];
+        updateDonorUI();
+        loadDonorAlerts();
+      } catch (err) {
+        showToast("Error loading donors: " + err.message, "error");
+      }
+    }
+
+    function onSelectDonor(donorId) {
+      if (!donorId) return;
+      currentDonor = donorsList.find(d => d.id == donorId);
+      updateDonorUI();
+      loadDonorAlerts();
+    }
+
+    function updateDonorUI() {
+      if (!currentDonor) return;
+      document.getElementById("d-name").innerText = currentDonor.name;
+      document.getElementById("d-details").innerText = `Blood Group: ${currentDonor.blood_group} • Area: Approx. ${currentDonor.city || 'Coimbatore'} • Contact: ${maskPhone(currentDonor.phone)}`;
+      
+      const badge = document.getElementById("donor-status-badge");
+      badge.innerText = currentDonor.availability;
+      badge.className = currentDonor.availability === "AVAILABLE" ? "badge badge-green" : "badge badge-red";
+    }
+
+    async function setAvailability(status) {
+      if (!currentDonor) return;
+      try {
+        const updated = await LifeLinkAPI.updateDonorAvailability(currentDonor.id, status);
+        currentDonor.availability = updated.availability;
+        updateDonorUI();
+        
+        // Update select option text
+        const select = document.getElementById("select-donor");
+        const opt = select.querySelector(`option[value="${currentDonor.id}"]`);
+        if (opt) {
+          opt.innerText = `${currentDonor.name} (${currentDonor.blood_group}) — ${currentDonor.availability}`;
+        }
+
+        showToast(`Availability updated to ${status}!`, "success");
+      } catch (err) {
+        showToast("Failed to update status: " + err.message, "error");
+      }
+    }
+
+    async function loadDonorAlerts() {
+      if (!currentDonor) return;
+      const container = document.getElementById("donor-notifications-container");
+      container.innerHTML = "<p style='color: var(--text-muted); font-size: 0.9rem;'>Checking active emergencies...</p>";
+
+      try {
+        const searching = await LifeLinkAPI.getEmergencyRequests("SEARCHING").catch(() => []);
+        const partial = await LifeLinkAPI.getEmergencyRequests("PARTIALLY_FULFILLED").catch(() => []);
+        const accepted = await LifeLinkAPI.getEmergencyRequests("DONOR_ACCEPTED").catch(() => []);
+        const combined = [...searching, ...partial, ...accepted];
+
+        // Unique by id
+        const uniqueRequests = Array.from(new Map(combined.map(r => [r.id, r])).values());
+
+        // Compatibility logic matching backend Phase 2 rules
+        // Recipient blood group -> Allowed donor groups:
+        // O+ -> O+, O-
+        // O- -> O-
+        // A+ -> A+, A-, O+, O-
+        // A- -> A-, O-
+        // B+ -> B+, B-, O+, O-
+        // B- -> B-, O-
+        // AB+ -> all
+        // AB- -> AB-, A-, B-, O-
+        const compatibleRequests = uniqueRequests.filter(r => {
+          const reqBlood = r.blood_group.toUpperCase();
+          const donorBlood = currentDonor.blood_group.toUpperCase();
+          
+          if (donorBlood === "O-") return true; // Universal donor
+          if (donorBlood === "O+" && ["O+", "A+", "B+", "AB+"].includes(reqBlood)) return true;
+          if (donorBlood === "A-" && ["A-", "A+", "AB-", "AB+"].includes(reqBlood)) return true;
+          if (donorBlood === "A+" && ["A+", "AB+"].includes(reqBlood)) return true;
+          if (donorBlood === "B-" && ["B-", "B+", "AB-", "AB+"].includes(reqBlood)) return true;
+          if (donorBlood === "B+" && ["B+", "AB+"].includes(reqBlood)) return true;
+          if (donorBlood === "AB-" && ["AB-", "AB+"].includes(reqBlood)) return true;
+          if (donorBlood === "AB+" && reqBlood === "AB+") return true;
+          return false;
+        });
+
+        document.getElementById("alert-count-badge").innerText = `${compatibleRequests.length} Alerts`;
+
+        if (compatibleRequests.length === 0) {
+          container.innerHTML = "<p style='color: var(--text-muted); font-size: 0.9rem;'>No active emergencies currently require your blood group. Thank you for being ready to help!</p>";
+          return;
+        }
+
+        container.innerHTML = "";
+        compatibleRequests.slice(0, 6).forEach(req => {
+          const alertCard = document.createElement("div");
+          alertCard.style.border = "1px solid var(--border-color)";
+          alertCard.style.borderRadius = "var(--border-radius-sm)";
+          alertCard.style.padding = "0.95rem";
+          alertCard.style.background = "#ffffff";
+          alertCard.style.boxShadow = "var(--shadow-sm)";
+
+          alertCard.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
+              <span class="badge ${req.urgency === 'CRITICAL' ? 'badge-red' : 'badge-amber'}">${req.urgency}</span>
+              <span style="font-weight: 800; color: var(--primary);">Emergency #${req.id}</span>
+            </div>
+            <div style="font-weight: 700; font-size: 1rem; color: var(--text-main);">
+              ${req.hospital_name} needs ${req.units_needed} unit(s) of ${req.blood_group} Blood
+            </div>
+            <div style="font-size: 0.83rem; color: var(--text-muted); margin: 0.35rem 0 0.85rem;">
+              Component: ${req.component.replace('_', ' ')} &bull; Accepted so far: <strong>${req.units_accepted} / ${req.units_needed}</strong> &bull; Status: <span class="badge badge-blue">${req.status}</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+              <button class="btn btn-secondary btn-sm" onclick="respond(${req.id}, 'DECLINE')">Decline</button>
+              <button class="btn btn-success btn-sm" onclick="respond(${req.id}, 'ACCEPT')">✓ Accept &amp; Respond</button>
+            </div>
+          `;
+          container.appendChild(alertCard);
+        });
+
+      } catch (err) {
+        container.innerHTML = `<p style='color: var(--accent-red); font-size: 0.9rem;'>Error loading alerts: ${err.message}</p>`;
+      }
+    }
+
+    async function respond(reqId, action) {
+      if (!currentDonor) return;
+      try {
+        const result = await LifeLinkAPI.respondToEmergency(reqId, currentDonor.id, action);
+        showToast(result.message || "Response recorded successfully.", action === "ACCEPT" ? "success" : "info");
+        await loadDonorAlerts();
+      } catch (err) {
+        showToast("Response error: " + err.message, "error");
+      }
+    }
+
+    async function handleDonorRegister(event) {
+      event.preventDefault();
+      const name = document.getElementById("reg-name").value.trim();
+      const phone = document.getElementById("reg-phone").value.trim();
+      const blood = document.getElementById("reg-blood").value;
+      const city = document.getElementById("reg-city").value.trim();
+      const avail = document.getElementById("reg-avail").value;
+      const type = document.getElementById("reg-type").value;
+
+      try {
+        const payload = {
+          name: name,
+          phone: phone,
+          blood_group: blood,
+          city: city || "Coimbatore",
+          availability: avail,
+          donation_type: type
+        };
+        const newDonor = await LifeLinkAPI.registerDonor(payload);
+        showToast(`Welcome ${newDonor.name}! Donor ID #${newDonor.id} registered.`, "success");
+        document.getElementById("form-register-donor").reset();
+        await initDonorPage();
+        
+        // Select the new donor
+        const select = document.getElementById("select-donor");
+        select.value = newDonor.id;
+        onSelectDonor(newDonor.id);
+
+      } catch (err) {
+        showToast("Registration failed: " + err.message, "error");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", initDonorPage);
+  </script>
+</body>
+</html>
