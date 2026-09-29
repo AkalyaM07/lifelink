@@ -7,16 +7,14 @@
 // ====================================================
 // CENTRAL API CONFIGURATION
 // ====================================================
-// For local development: "http://127.0.0.1:8000"
-// For production (Render): Set to your deployed backend URL
-// ====================================================
-const API_BASE = "http://127.0.0.1:8000";
+// Production deployed backend URL on Render:
+const API_BASE = "https://lifelink-2ldt.onrender.com";
 
 // Helper for friendly network error messages
 function handleFetchError(err, actionDescription) {
   console.error(`API Error (${actionDescription}):`, err);
   if (err instanceof TypeError && err.message.toLowerCase().includes("fetch")) {
-    throw new Error("Life-Link backend is temporarily unreachable. Please ensure the backend server is running at http://127.0.0.1:8000.");
+    throw new Error("Unable to connect to the Life-Link server. Please try again in a moment.");
   }
   throw err;
 }

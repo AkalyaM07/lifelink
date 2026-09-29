@@ -43,8 +43,13 @@ app.add_middleware(
         "http://localhost:5501",
         "http://127.0.0.1:3000",
         "http://localhost:3000",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "https://lifelink-1-mnme.onrender.com",
+        "http://lifelink-1-mnme.onrender.com",
         "null",  # file:// protocol (opening HTML directly from filesystem)
     ],
+    allow_origin_regex=r"https://.*\.onrender\.com",
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
