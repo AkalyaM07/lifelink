@@ -15,10 +15,13 @@
 // 1. CENTRAL API CONFIGURATION
 // ====================================================
 // Automatically switches to local server during local testing, or deployed backend on Render
+// ====================================================
+// 1. CENTRAL API CONFIGURATION
+// ====================================================
+// Automatically switches to local server during local testing, or deployed backend on Render
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://127.0.0.1:8000'
-  : 'https://lifelink-2ldt.onrender.com';
-
+  : 'https://lifelink-backend-qrk8.onrender.com';
 function handleFetchError(err, actionDescription) {
   console.error(`API Error (${actionDescription}):`, err);
   if (err instanceof TypeError && err.message.toLowerCase().includes("fetch")) {
