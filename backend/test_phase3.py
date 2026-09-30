@@ -22,8 +22,8 @@ def test_cascade_engine():
     print("RUNNING LIFE-LINK PHASE 3 ADAPTIVE CASCADE TESTS")
     print("=" * 65)
 
-    # Ensure demo database is populated
-    client.post("/seed-demo-data")
+    # Ensure demo database is freshly populated with known 12-user state
+    client.post("/seed-demo-data?force=true")
 
     # -------------------------------------------------------------
     # 1. SCENARIO A: Target fulfilled within Round 1 (0 - 5 km)

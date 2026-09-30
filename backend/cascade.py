@@ -12,6 +12,7 @@ the cascade engine progressively expands the search perimeter:
 
 Donors are deduplicated so no donor is contacted twice.
 The cascade stops immediately as soon as the target required units are covered.
+Respects and preserves distinct advanced states (DONOR_ACCEPTED, HOSPITAL_CONFIRMED, DONATION_COMPLETED).
 """
 
 from typing import List, Dict, Any, Optional
@@ -91,7 +92,6 @@ def execute_emergency_cascade(
                 continue
 
             # Must be within this round's distance band
-            # Note: For Round 1, min_km is 0.0; for Round 2, min_km is 5.0, etc.
             if d_dist >= r_min and d_dist <= r_max:
                 seen_donor_ids.add(d_id)
                 donor_entry = {
@@ -106,8 +106,6 @@ def execute_emergency_cascade(
                 }
                 new_donors_in_round.append(donor_entry)
 
-        # We take only as many donors as needed or record all found in this round
-        # In emergency coordination, we record the newly discovered donors
         matched_donors.extend(new_donors_in_round)
 
         executed_rounds_info.append({
@@ -124,7 +122,7 @@ def execute_emergency_cascade(
             target_reached = True
             break
 
-    # Determine final status
+    # Determine cascade outcome status
     units_matched = min(len(matched_donors), units_required)
     units_remaining = max(0, units_required - len(matched_donors))
 
@@ -143,8 +141,14 @@ def execute_emergency_cascade(
         current_round_num = BLOOD_BANK_FALLBACK_ROUND
 
     # Update database record status and current round
+    # Preserve advanced lifecycle states (e.g. if a donor already accepted or hospital confirmed)
     emergency_request.current_cascade_round = current_round_num
-    emergency_request.status = status
+    advanced_states = [
+        "DONOR_ACCEPTED", "HOSPITAL_CONFIRMED", "SCREENING_PENDING",
+        "SCREENING_COMPLETED", "DONATION_IN_PROGRESS", "DONATION_COMPLETED"
+    ]
+    if emergency_request.status not in advanced_states:
+        emergency_request.status = status
     db.commit()
 
     return {
@@ -154,7 +158,7 @@ def execute_emergency_cascade(
         "units_required": units_required,
         "units_matched": len(matched_donors),
         "units_remaining": units_remaining,
-        "status": status,
+        "status": emergency_request.status,
         "current_round": current_round_num,
         "blood_bank_backup_recommended": blood_bank_needed,
         "rounds": executed_rounds_info,

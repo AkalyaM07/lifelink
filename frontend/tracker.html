@@ -3,8 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Command Center & Tracker | LIFE-LINK</title>
+  <title>Emergency Lifecycle Tracker | LIFE-LINK</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .lifecycle-stepper {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.5rem;
+      margin: 1.5rem 0;
+    }
+    .lifecycle-step {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem 0.6rem;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .lifecycle-step.completed {
+      background: #f0fdf4;
+      border-color: #86efac;
+      color: #166534;
+    }
+    .lifecycle-step.current {
+      background: #f0f9ff;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+    }
+    .lifecycle-step .num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #475569;
+      font-size: 0.75rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.3rem;
+    }
+    .lifecycle-step.completed .num {
+      background: #22c55e;
+      color: white;
+    }
+    .lifecycle-step.current .num {
+      background: var(--primary);
+      color: white;
+    }
+    .lifecycle-step .title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+  </style>
 </head>
 <body>
 
@@ -12,16 +65,21 @@
   <nav class="navbar">
     <a href="index.html" class="nav-brand">
       <span>❤️ LIFE-LINK</span>
-      <span class="brand-badge">COMMAND CENTER</span>
+      <span class="brand-badge">LIFECYCLE TRACKER</span>
     </a>
     <ul class="nav-links">
       <li><a href="index.html" class="nav-link">Home</a></li>
-      <li><a href="emergency.html" class="nav-link nav-btn-emergency">🚨 Emergency Help</a></li>
-      <li><a href="donor.html" class="nav-link">Become a Donor</a></li>
-      <li><a href="tracker.html" class="nav-link active">Track Emergency</a></li>
+      <li><a href="emergency.html" class="nav-link nav-btn-emergency">🚨 Emergency</a></li>
+      <li><a href="matching.html" class="nav-link">Matching</a></li>
+      <li><a href="cascade.html" class="nav-link">Cascade</a></li>
+      <li><a href="tracker.html" class="nav-link active">Tracker</a></li>
+      <li><a href="donor.html" class="nav-link">Donor Center</a></li>
+      <li><a href="notifications.html" class="nav-link">Notifications</a></li>
+      <li><a href="account.html" class="nav-link">My Account</a></li>
       <li><a href="hospital.html" class="nav-link">Hospital</a></li>
       <li><a href="organ.html" class="nav-link">Organ & Tissue</a></li>
     </ul>
+    <div id="nav-user-container"></div>
   </nav>
 
   <!-- Main Container -->
@@ -30,13 +88,13 @@
     <!-- Top Bar with Emergency Selector -->
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
       <div>
-        <h1 style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.4px;">📡 Live Emergency Command Center</h1>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">Real-time proximity matching & adaptive cascade tracking.</p>
+        <h1 class="page-title" style="margin-bottom: 0.2rem;">📡 Dedicated Emergency Lifecycle Tracker</h1>
+        <p class="page-subtitle" style="margin: 0;">Complete end-to-end audit: Request &rarr; Matching &rarr; Donor Willingness &rarr; Hospital Confirmation &rarr; Screening &rarr; Donation.</p>
       </div>
 
       <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
-        <label for="select-emergency" style="font-size: 0.86rem; font-weight: 600;">Active Emergency:</label>
-        <select id="select-emergency" class="form-control" style="width: auto; min-width: 240px; padding: 0.45rem 0.85rem;" onchange="switchEmergency(this.value)">
+        <label for="select-emergency" style="font-size: 0.86rem; font-weight: 700;">Select Emergency:</label>
+        <select id="select-emergency" class="form-control" style="width: auto; min-width: 250px;" onchange="switchEmergency(this.value)">
           <option value="">Loading emergencies...</option>
         </select>
         <button class="btn btn-secondary btn-sm" onclick="loadEmergencyData()">🔄 Refresh</button>
@@ -44,125 +102,171 @@
     </div>
 
     <!-- Active Emergency Overview Card -->
-    <div class="card" style="border-top: 4px solid var(--accent-red);">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+    <div class="card" style="border-top: 4px solid var(--accent-red); margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
         <div>
           <span id="badge-urgency" class="badge badge-red" style="font-size: 0.8rem;">CRITICAL</span>
-          <span id="badge-status" class="badge badge-blue" style="font-size: 0.8rem; margin-left: 0.4rem;">SEARCHING</span>
-          <h2 id="req-title" style="font-size: 1.55rem; font-weight: 800; margin-top: 0.4rem;">Emergency #--</h2>
+          <span id="badge-status" class="badge badge-blue" style="font-size: 0.8rem; margin-left: 0.3rem;">SEARCHING</span>
+          <h2 id="req-title" style="font-size: 1.55rem; font-weight: 800; margin-top: 0.3rem;">Emergency #--</h2>
           <p id="req-hospital" style="color: var(--text-muted); font-size: 0.95rem;">Hospital: --</p>
+          <p id="req-parties" style="font-size: 0.84rem; color: var(--text-light); margin-top: 0.2rem;">Patient: -- | Requester: --</p>
         </div>
 
         <div style="display: flex; gap: 1.5rem; text-align: right; flex-wrap: wrap;">
           <div>
-            <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Required</div>
-            <div id="stat-units-needed" style="font-size: 1.7rem; font-weight: 800; color: var(--accent-red);">-</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Required</div>
+            <div id="stat-units-needed" style="font-size: 1.6rem; font-weight: 800; color: var(--accent-red);">-</div>
           </div>
           <div>
-            <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Accepted</div>
-            <div id="stat-units-accepted" style="font-size: 1.7rem; font-weight: 800; color: var(--accent-green);">-</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Accepted</div>
+            <div id="stat-units-accepted" style="font-size: 1.6rem; font-weight: 800; color: var(--accent-green);">-</div>
           </div>
           <div>
-            <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Cascade Round</div>
-            <div id="stat-cascade-round" style="font-size: 1.7rem; font-weight: 800; color: var(--primary);">-</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Cascade Round</div>
+            <div id="stat-cascade-round" style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">-</div>
           </div>
         </div>
       </div>
 
-      <!-- 6-Stage Progress Stepper Pipeline -->
-      <div class="stepper">
-        <div class="step completed" id="step-1">
-          <div class="step-circle">✓</div>
-          <div class="step-label">Request Created</div>
-        </div>
-        <div class="step completed" id="step-2">
-          <div class="step-circle">✓</div>
-          <div class="step-label">AI Understood</div>
-        </div>
-        <div class="step" id="step-3">
-          <div class="step-circle">3</div>
-          <div class="step-label">Donors Matched</div>
-        </div>
-        <div class="step" id="step-4">
-          <div class="step-circle">4</div>
-          <div class="step-label">Adaptive Cascade</div>
-        </div>
-        <div class="step" id="step-5">
-          <div class="step-circle">5</div>
-          <div class="step-label" id="step-5-label">Donor Response</div>
-        </div>
-        <div class="step" id="step-6">
-          <div class="step-circle">6</div>
-          <div class="step-label" id="step-6-label">Target Reached</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2 Column Layout: Cascade Engine + Radar Zone -->
-    <div class="grid-2">
-      
-      <!-- Adaptive Cascade Breakdown (Phase 3) -->
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-          <h3 style="font-size: 1.2rem; font-weight: 800;">📡 Adaptive Emergency Cascade</h3>
-          <span id="cascade-status-pill" class="badge badge-amber">-</span>
-        </div>
-        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
-          Progressive radius search expanding dynamically to cover required units.
-        </p>
-
-        <!-- Cascade Timeline List -->
-        <div id="cascade-rounds-container" class="timeline">
-          <p style="color: var(--text-muted); font-size: 0.9rem;">Executing cascade search...</p>
-        </div>
-
-        <!-- Blood Bank Fallback Notice -->
-        <div id="blood-bank-advisory" style="display: none; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 0.9rem 1rem; border-radius: var(--border-radius-sm); margin-top: 1rem;">
-          <strong style="display: block; font-size: 0.92rem;">🏥 Regional Blood Bank Escalation:</strong>
-          <p style="font-size: 0.85rem; margin-top: 0.2rem; line-height: 1.45;">
-            Local voluntary donor rounds within 25 km are insufficient. Life-Link recommends institutional dispatch and certified partner blood bank inventories.
-          </p>
-        </div>
+      <!-- Quick Action Navigation -->
+      <div style="display: flex; gap: 0.6rem; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.8rem; flex-wrap: wrap;">
+        <a id="link-match-page" href="matching.html" class="btn btn-secondary btn-sm">🎯 Open Dedicated Matching Page &rarr;</a>
+        <a id="link-cascade-page" href="cascade.html" class="btn btn-secondary btn-sm">📡 Open Dedicated Cascade Page &rarr;</a>
       </div>
 
-      <!-- Approximate Zone / Radar Visualization -->
-      <div class="card" style="text-align: center;">
-        <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 0.4rem;">🗺️ Approximate Donor Zones</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-          Privacy-Safe Zone Visualization (Hospital at Center, Concentric Radius Bands)
-        </p>
-
-        <div class="radar-box" id="radar-container">
-          <div class="radar-ring ring-5km">5 km</div>
-          <div class="radar-ring ring-15km">15 km</div>
-          <div class="radar-ring ring-25km">25 km</div>
-          <div class="radar-center" title="Hospital Location"></div>
-          <!-- Donor dots dynamically inserted here -->
+      <!-- Full 10-Stage Emergency Lifecycle Stepper -->
+      <div class="lifecycle-stepper" id="lifecycle-stepper-container">
+        <div class="lifecycle-step completed" id="step-1">
+          <div class="num">✓</div>
+          <div class="title">1. Request Created</div>
         </div>
-
-        <div style="display: flex; justify-content: center; gap: 1.2rem; margin-top: 0.8rem; font-size: 0.78rem; color: var(--text-muted); flex-wrap: wrap;">
-          <span>🔴 Center: Hospital</span>
-          <span>🔵 Dots: Compatible Donors</span>
-          <span>⭕ Rings: 5km / 15km / 25km</span>
+        <div class="lifecycle-step completed" id="step-2">
+          <div class="num">✓</div>
+          <div class="title">2. AI Understood</div>
+        </div>
+        <div class="lifecycle-step" id="step-3">
+          <div class="num">3</div>
+          <div class="title">3. Confirmed</div>
+        </div>
+        <div class="lifecycle-step" id="step-4">
+          <div class="num">4</div>
+          <div class="title">4. Matching</div>
+        </div>
+        <div class="lifecycle-step" id="step-5">
+          <div class="num">5</div>
+          <div class="title">5. Donors Notified</div>
+        </div>
+        <div class="lifecycle-step" id="step-6">
+          <div class="num">6</div>
+          <div class="title">6. Donor Willing (State 1)</div>
+        </div>
+        <div class="lifecycle-step" id="step-7">
+          <div class="num">7</div>
+          <div class="title">7. Hospital Verified (State 2)</div>
+        </div>
+        <div class="lifecycle-step" id="step-8">
+          <div class="num">8</div>
+          <div class="title">8. Medical Screening</div>
+        </div>
+        <div class="lifecycle-step" id="step-9">
+          <div class="num">9</div>
+          <div class="title">9. Donation In Progress</div>
+        </div>
+        <div class="lifecycle-step" id="step-10">
+          <div class="num">10</div>
+          <div class="title">10. Donation Completed (State 3)</div>
         </div>
       </div>
 
     </div>
 
-    <!-- Matched Donors Grid (Phase 2 & Privacy Safe) -->
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+    <!-- Three Separate States Coordination Panel -->
+    <div class="card" style="margin-bottom: 1.5rem; background: #fafafa; border: 1px solid var(--border-color);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem;">
         <div>
-          <h3 style="font-size: 1.25rem; font-weight: 800;">🩸 Potential Compatible Donors Nearby</h3>
-          <p style="font-size: 0.85rem; color: var(--text-muted);">
-            Ranked by biological compatibility and geodesic proximity. Exact addresses and phone numbers remain protected.
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main);">🏥 Hospital & Clinical Action Center (Three Distinct States)</h3>
+          <p style="font-size: 0.84rem; color: var(--text-muted); margin: 0;">
+            Demonstrate verified state transitions: Donor Willing &rarr; Hospital Confirmed &rarr; Clinical Screening &rarr; Donation Completed.
           </p>
         </div>
-        <span id="matches-count-badge" class="badge badge-blue">0 Donors</span>
+        <span class="badge badge-purple">Clinical Protocol Controls</span>
       </div>
 
-      <div id="matches-grid" class="grid-3">
-        <p style="color: var(--text-muted); font-size: 0.9rem;">Searching compatible donors...</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem;">
+        
+        <!-- State 1: Donor Willingness -->
+        <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <strong style="color: var(--primary); font-size: 0.92rem;">STATE 1: DONOR WILLING</strong>
+            <span id="st1-badge" class="badge badge-amber">PENDING</span>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+            Donor indicates voluntary willingness to donate. Does NOT equal donation completion.
+          </p>
+          <div id="st1-details" style="font-size: 0.82rem; margin-top: 0.6rem; font-weight: 600;">
+            Units Accepted: 0
+          </div>
+        </div>
+
+        <!-- State 2: Hospital Confirmed -->
+        <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <strong style="color: var(--secondary); font-size: 0.92rem;">STATE 2: HOSPITAL CONFIRMED</strong>
+            <span id="st2-badge" class="badge badge-amber">UNCONFIRMED</span>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+            Hospital blood bank verifies requirement and prepares reception appointment.
+          </p>
+          <div style="margin-top: 0.8rem;">
+            <button id="btn-hospital-confirm" class="btn btn-secondary btn-sm" onclick="executeHospitalConfirm()">
+              🏥 Confirm Hospital Requisition
+            </button>
+          </div>
+        </div>
+
+        <!-- State 3: Screening & Donation Completed -->
+        <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <strong style="color: var(--accent-green); font-size: 0.92rem;">STATE 3: DONATION COMPLETED</strong>
+            <span id="st3-badge" class="badge badge-amber">INCOMPLETE</span>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+            Recorded ONLY after clinical screening and physical whole blood donation.
+          </p>
+          <div style="margin-top: 0.8rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button id="btn-screening-pass" class="btn btn-secondary btn-sm" onclick="executeScreeningUpdate(true)">
+              🩺 Pass Screening
+            </button>
+            <button id="btn-complete-donation" class="btn btn-primary btn-sm" onclick="executeCompleteDonation()">
+              🟢 Mark Donated
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Donor Responses & Verified Notified Donors List -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 800;">👥 Voluntary Donor Activity for this Emergency</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">Verified responses recorded from compatible available donors</p>
+        </div>
+        <span id="response-count-badge" class="badge badge-blue">0 Responses</span>
+      </div>
+
+      <div id="responses-container">
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Loading donor activity...</p>
+      </div>
+    </div>
+
+    <!-- Medical Safety Disclaimer -->
+    <div class="disclaimer-banner">
+      <span style="font-size: 1.25rem;">⚠️</span>
+      <div>
+        <strong>Clinical Architecture Boundary:</strong>
+        The Tracker strictly separates voluntary donor intent from clinical hospital confirmation and completed physical donation. Never assume donation has occurred until certified medical personnel mark State 3 (Donation Completed).
       </div>
     </div>
 
@@ -176,240 +280,306 @@
   <script src="js/app.js"></script>
   <script>
     let currentRequestId = null;
-    let pollInterval = null;
+    let currentUser = null;
 
-    function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
-    }
+    document.addEventListener("DOMContentLoaded", async () => {
+      currentUser = await LifeLinkAuth.requireAuth();
+      if (!currentUser) return;
+      await LifeLinkAuth.initNavbarUser(document.getElementById("nav-user-container"));
+      await initEmergencyDropdown();
+    });
 
-    async function initPage() {
+    async function initEmergencyDropdown() {
+      const select = document.getElementById("select-emergency");
       try {
-        const requests = await LifeLinkAPI.getEmergencyRequests();
-        const select = document.getElementById("select-emergency");
+        const emergencies = await LifeLinkAPI.getEmergencyRequests();
         select.innerHTML = "";
 
-        if (!requests || requests.length === 0) {
-          select.innerHTML = "<option value=''>No active emergencies</option>";
-          document.getElementById("req-title").innerText = "No Emergency Requests Found";
-          document.getElementById("req-hospital").innerText = "Create a new emergency request to begin tracking.";
+        if (!emergencies || emergencies.length === 0) {
+          select.innerHTML = `<option value="">No active emergencies found</option>`;
+          document.getElementById("req-title").innerText = "No Active Emergencies";
+          document.getElementById("req-hospital").innerText = "Create an emergency request to begin real-time tracking.";
+          document.getElementById("req-parties").innerText = "";
+          document.getElementById("badge-status").innerText = "INACTIVE";
+          document.getElementById("donor-responses-list").innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1rem;">No active emergency selected.</p>`;
           return;
         }
 
-        requests.forEach(r => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlId = urlParams.get("id");
+
+        emergencies.forEach(req => {
           const opt = document.createElement("option");
-          opt.value = r.id;
-          opt.innerText = `#${r.id} | ${r.hospital_name} (${r.units_needed} units ${r.blood_group}) - ${r.status}`;
+          opt.value = req.id;
+          opt.innerText = `Emergency #${req.id} - ${req.hospital_name} (${req.blood_group}, ${req.units_needed} units)`;
           select.appendChild(opt);
         });
 
-        const urlId = getQueryParam("id");
-        if (urlId && requests.some(r => r.id == urlId)) {
-          currentRequestId = parseInt(urlId);
-          select.value = currentRequestId;
+        if (urlId && emergencies.some(e => e.id == urlId)) {
+          select.value = urlId;
         } else {
-          currentRequestId = requests[0].id;
-          select.value = currentRequestId;
+          select.value = emergencies[0].id;
         }
 
-        await loadEmergencyData();
-
-        // Auto-poll every 5 seconds for live status updates
-        if (pollInterval) clearInterval(pollInterval);
-        pollInterval = setInterval(loadEmergencyData, 5000);
+        await switchEmergency(select.value);
 
       } catch (err) {
-        showToast("Error initializing command center: " + err.message, "error");
+        select.innerHTML = `<option value="">Failed to load emergencies</option>`;
+        console.error(err);
       }
     }
 
-    function switchEmergency(id) {
-      if (!id) return;
-      currentRequestId = parseInt(id);
-      window.history.replaceState({}, '', `tracker.html?id=${id}`);
-      loadEmergencyData();
+    async function switchEmergency(reqId) {
+      if (!reqId) return;
+      currentRequestId = reqId;
+      window.history.replaceState(null, "", `tracker.html?id=${reqId}`);
+      document.getElementById("link-match-page").href = `matching.html?id=${reqId}`;
+      document.getElementById("link-cascade-page").href = `cascade.html?id=${reqId}`;
+      await loadEmergencyData();
     }
 
     async function loadEmergencyData() {
       if (!currentRequestId) return;
 
       try {
-        // 1. Fetch Request Details
         const req = await LifeLinkAPI.getEmergencyRequest(currentRequestId);
-        document.getElementById("req-title").innerText = `Emergency #${req.id} — ${req.blood_group} Blood`;
-        document.getElementById("req-hospital").innerText = `Hospital: ${req.hospital_name} (${req.hospital_city || 'Coimbatore'}) • Resource: ${req.component.replace('_', ' ')}`;
+        
+        document.getElementById("req-title").innerText = `Emergency #${req.id}: ${req.units_needed} Units of ${req.blood_group}`;
+        document.getElementById("req-hospital").innerText = `Hospital: ${req.hospital_name} (${req.hospital_city || 'Coimbatore'})`;
+        document.getElementById("req-parties").innerText = `Patient: ${req.patient_name} | Account Requester: ${req.requester_name || 'Anonymous'}`;
+        
+        document.getElementById("badge-urgency").innerText = req.urgency;
+        document.getElementById("badge-urgency").className = `badge ${req.urgency === 'CRITICAL' ? 'badge-red' : 'badge-amber'}`;
+        document.getElementById("badge-status").innerText = req.status;
+
         document.getElementById("stat-units-needed").innerText = req.units_needed;
-        document.getElementById("stat-units-accepted").innerText = req.units_accepted;
-        document.getElementById("stat-cascade-round").innerText = `Round ${req.current_cascade_round}`;
+        document.getElementById("stat-units-accepted").innerText = req.units_accepted || 0;
+        document.getElementById("stat-cascade-round").innerText = `Round ${req.current_cascade_round || 1}`;
 
-        const urgencyBadge = document.getElementById("badge-urgency");
-        urgencyBadge.innerText = req.urgency;
-        urgencyBadge.className = req.urgency === "CRITICAL" ? "badge badge-red" : "badge badge-amber";
+        // Update Stepper Pipeline
+        updateStepper(req);
 
-        const statusBadge = document.getElementById("badge-status");
-        statusBadge.innerText = req.status;
-        statusBadge.className = req.status === "TARGET_REACHED" ? "badge badge-green" : req.status === "DONOR_ACCEPTED" ? "badge badge-blue" : "badge badge-amber";
+        // Update 3 Separate States Panel
+        updateStatesPanel(req);
 
-        // 2. Fetch Cascade Breakdown
-        const cascade = await LifeLinkAPI.getCascade(currentRequestId);
-        renderCascade(cascade);
-
-        // 3. Fetch Matches
-        const matchesData = await LifeLinkAPI.getMatches(currentRequestId);
-        renderMatches(matchesData);
-
-        // 4. Update 6-Step Stepper
-        updateStepper(req, matchesData);
-
-        // 5. Render Radar Dots
-        renderRadarDots(matchesData.matches);
+        // Load Donor Responses
+        await loadDonorResponses(req);
 
       } catch (err) {
-        console.warn("Failed to load emergency data:", err);
+        showToast("Error loading emergency data: " + err.message, "error");
       }
     }
 
-    function updateStepper(req, matchesData) {
-      const step3 = document.getElementById("step-3");
-      const step4 = document.getElementById("step-4");
-      const step5 = document.getElementById("step-5");
-      const step5Label = document.getElementById("step-5-label");
-      const step6 = document.getElementById("step-6");
-      const step6Label = document.getElementById("step-6-label");
-
-      // Step 3: Donors Matched
-      const hasMatches = matchesData && matchesData.total_compatible_found > 0;
-      if (hasMatches) {
-        step3.className = "step completed";
-        step3.querySelector(".step-circle").innerText = "✓";
-      } else {
-        step3.className = "step active";
-        step3.querySelector(".step-circle").innerText = "3";
-      }
-
-      // Step 4: Adaptive Cascade
-      step4.className = req.current_cascade_round > 1 ? "step completed" : "step active";
-      step4.querySelector(".step-circle").innerText = req.current_cascade_round > 1 ? "✓" : "4";
-
-      // Step 5: Donor Response
-      if (req.units_accepted > 0) {
-        step5.className = "step completed";
-        step5.querySelector(".step-circle").innerText = "✓";
-        step5Label.innerText = `${req.units_accepted} Accepted`;
-      } else {
-        step5.className = req.status === "SEARCHING" ? "step active" : "step";
-        step5.querySelector(".step-circle").innerText = "5";
-        step5Label.innerText = "Awaiting Response";
-      }
-
-      // Step 6: Final Outcome
-      if (req.status === "TARGET_REACHED") {
-        step6.className = "step completed";
-        step6.querySelector(".step-circle").innerText = "✓";
-        step6Label.innerText = "Target Reached";
-      } else if (req.status === "PARTIALLY_FULFILLED") {
-        step6.className = "step active";
-        step6.querySelector(".step-circle").innerText = "6";
-        step6Label.innerText = "Partially Met";
-      } else if (req.status === "NO_MATCHES") {
-        step6.className = "step active";
-        step6.querySelector(".step-circle").innerText = "!";
-        step6Label.innerText = "No Matches";
-      } else {
-        step6.className = "step";
-        step6.querySelector(".step-circle").innerText = "6";
-        step6Label.innerText = "In Progress";
-      }
-    }
-
-    function renderCascade(cascade) {
-      const container = document.getElementById("cascade-rounds-container");
-      container.innerHTML = "";
-
-      const pill = document.getElementById("cascade-status-pill");
-      pill.innerText = cascade.status;
-      pill.className = cascade.status === "TARGET_REACHED" ? "badge badge-green" : "badge badge-amber";
-
-      cascade.rounds.forEach(r => {
-        const item = document.createElement("div");
-        item.className = "timeline-item " + (r.round === cascade.current_round ? "active" : "");
-        item.innerHTML = `
-          <div class="timeline-round-num">Round ${r.round}</div>
-          <div style="flex: 1;">
-            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">${r.radius}</div>
-            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
-              ✓ Found <strong>${r.new_matches}</strong> candidates in this band
-              (Total units covered: <strong>${r.cumulative_units_matched}</strong>)
-            </div>
-          </div>
-        `;
-        container.appendChild(item);
+    function updateStepper(req) {
+      const steps = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      steps.forEach(s => {
+        const el = document.getElementById(`step-${s}`);
+        if (!el) return;
+        el.className = "lifecycle-step";
+        el.querySelector(".num").innerText = s;
       });
 
-      const advisory = document.getElementById("blood-bank-advisory");
-      advisory.style.display = cascade.blood_bank_backup_recommended ? "block" : "none";
+      // Steps 1 & 2 are completed once created and understood
+      setStepCompleted(1);
+      setStepCompleted(2);
+      setStepCompleted(3); // Confirmed
+
+      // Step 4: Matching
+      setStepCompleted(4);
+      // Step 5: Donors Notified
+      setStepCompleted(5);
+
+      // Step 6: Donor Willing (State 1)
+      if (req.units_accepted > 0 || req.status === "DONOR_ACCEPTED" || req.status === "TARGET_REACHED") {
+        setStepCompleted(6);
+      } else {
+        setStepCurrent(6);
+      }
+
+      // Step 7: Hospital Verified (State 2)
+      if (req.hospital_confirmed) {
+        setStepCompleted(7);
+      } else if (req.units_accepted > 0) {
+        setStepCurrent(7);
+      }
+
+      // Step 8: Medical Screening
+      if (req.screening_status === "PASSED") {
+        setStepCompleted(8);
+      } else if (req.hospital_confirmed) {
+        setStepCurrent(8);
+      }
+
+      // Step 9 & 10: Donation
+      if (req.donation_completed || req.status === "DONATION_COMPLETED") {
+        setStepCompleted(9);
+        setStepCompleted(10);
+      } else if (req.screening_status === "PASSED") {
+        setStepCurrent(9);
+      }
     }
 
-    function renderMatches(data) {
-      const grid = document.getElementById("matches-grid");
-      grid.innerHTML = "";
+    function setStepCompleted(stepNum) {
+      const el = document.getElementById(`step-${stepNum}`);
+      if (el) {
+        el.className = "lifecycle-step completed";
+        el.querySelector(".num").innerText = "✓";
+      }
+    }
 
-      document.getElementById("matches-count-badge").innerText = `${data.total_compatible_found} Donors`;
+    function setStepCurrent(stepNum) {
+      const el = document.getElementById(`step-${stepNum}`);
+      if (el) {
+        el.className = "lifecycle-step current";
+      }
+    }
 
-      if (!data.matches || data.matches.length === 0) {
-        grid.innerHTML = `<p style="color: var(--text-muted); grid-column: 1/-1; padding: 1rem 0;">No compatible donors found nearby. Regional blood bank escalation recommended.</p>`;
+    function updateStatesPanel(req) {
+      // State 1: Donor Willing
+      const st1Badge = document.getElementById("st1-badge");
+      const st1Details = document.getElementById("st1-details");
+      if (req.units_accepted > 0) {
+        st1Badge.innerText = `${req.units_accepted} / ${req.units_needed} ACCEPTED`;
+        st1Badge.className = "badge badge-green";
+        st1Details.innerText = `Donors registered willingness for ${req.units_accepted} unit(s).`;
+      } else {
+        st1Badge.innerText = "WAITING";
+        st1Badge.className = "badge badge-amber";
+        st1Details.innerText = "Waiting for donors to respond.";
+      }
+
+      // State 2: Hospital Confirmed
+      const st2Badge = document.getElementById("st2-badge");
+      const btnHosp = document.getElementById("btn-hospital-confirm");
+      if (req.hospital_confirmed) {
+        st2Badge.innerText = "VERIFIED";
+        st2Badge.className = "badge badge-green";
+        btnHosp.innerText = "✓ Hospital Verified";
+        btnHosp.disabled = true;
+      } else {
+        st2Badge.innerText = "UNCONFIRMED";
+        st2Badge.className = "badge badge-amber";
+        btnHosp.innerText = "🏥 Confirm Hospital Requisition";
+        btnHosp.disabled = false;
+      }
+
+      // State 3: Screening & Donation Completed
+      const st3Badge = document.getElementById("st3-badge");
+      const btnDonated = document.getElementById("btn-complete-donation");
+      const btnScreen = document.getElementById("btn-screening-pass");
+
+      if (req.donation_completed || req.status === "DONATION_COMPLETED") {
+        st3Badge.innerText = "COMPLETED";
+        st3Badge.className = "badge badge-green";
+      } else if (req.screening_status === "PASSED") {
+        st3Badge.innerText = "SCREENING PASSED";
+        st3Badge.className = "badge badge-blue";
+      } else {
+        st3Badge.innerText = "INCOMPLETE";
+        st3Badge.className = "badge badge-amber";
+      }
+    }
+
+    async function loadDonorResponses(req) {
+      const container = document.getElementById("responses-container");
+      const badge = document.getElementById("response-count-badge");
+
+      try {
+        // Query matches to show response status
+        const matchesRes = await LifeLinkAPI.getMatches(req.id);
+        const matches = matchesRes.matches || [];
+        const responded = matches.filter(m => m.response_status && m.response_status !== "WAITING");
+
+        badge.innerText = `${responded.length} Responses`;
+
+        if (matches.length === 0) {
+          container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">No candidate donors found in immediate radius.</p>`;
+          return;
+        }
+
+        container.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            ${matches.map(m => `
+              <div style="display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid var(--border-color); border-radius: 6px; padding: 0.65rem 0.9rem; flex-wrap: wrap; gap: 0.4rem;">
+                <div>
+                  <strong style="color: var(--text-main);">${escapeHtml(m.name)}</strong>
+                  <span class="badge badge-red" style="margin-left: 0.4rem;">${m.blood_group}</span>
+                  <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 0.4rem;">~${m.distance_km} km (${escapeHtml(m.approximate_location || 'Coimbatore')})</span>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <span style="font-size: 0.78rem; color: #166534;">🔔 Alert Sent</span>
+                  ${m.response_status === 'ACCEPT' || m.response_status === 'WILLING' 
+                    ? `<span class="badge badge-green">Willing to Help</span>` 
+                    : m.response_status === 'DECLINE' 
+                    ? `<span class="badge badge-red">Declined</span>` 
+                    : `<span class="badge badge-amber">Waiting Response</span>`}
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      } catch (e) {
+        container.innerHTML = `<p style="color: var(--text-muted);">Could not load donor responses.</p>`;
+      }
+    }
+
+    async function executeHospitalConfirm() {
+      if (!currentRequestId) return;
+      try {
+        const res = await LifeLinkAPI.hospitalConfirm(currentRequestId, "Requisition confirmed by on-duty clinical team.");
+        showToast("Hospital requisition verified and confirmed!", "success");
+        await loadEmergencyData();
+      } catch (err) {
+        showToast("Failed to confirm hospital: " + err.message, "error");
+      }
+    }
+
+    async function executeScreeningUpdate(passed) {
+      if (!currentRequestId) return;
+      const donorUserId = currentUser ? currentUser.id : null;
+      if (!donorUserId) {
+        showToast("Please log in as an authenticated user to record screening.", "warning");
         return;
       }
-
-      data.matches.forEach(m => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.style.marginBottom = "0";
-        card.style.padding = "1.1rem";
-        card.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
-            <div style="font-weight: 700; font-size: 1rem;">${m.name}</div>
-            <span class="badge badge-red">${m.blood_group}</span>
-          </div>
-          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.6rem;">
-            📍 Approx. ${m.approximate_location || 'Coimbatore Area'}
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border-color); padding-top: 0.5rem; font-size: 0.82rem;">
-            <span style="font-weight: 700; color: var(--primary);">${m.distance_km} km away</span>
-            <span class="badge badge-green">✓ Verified</span>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
+      try {
+        await LifeLinkAPI.screeningUpdate(currentRequestId, {
+          donor_user_id: donorUserId,
+          passed: passed,
+          notes: "Vitals and hemoglobin within safe clinical ranges."
+        });
+        showToast(`Screening outcome recorded: ${passed ? 'PASSED' : 'DEFERRED'}`, "success");
+        await loadEmergencyData();
+      } catch (err) {
+        showToast("Screening update failed: " + err.message, "error");
+      }
     }
 
-    function renderRadarDots(matches) {
-      const radar = document.getElementById("radar-container");
-      const oldDots = radar.querySelectorAll(".radar-dot");
-      oldDots.forEach(d => d.remove());
-
-      if (!matches || matches.length === 0) return;
-
-      matches.forEach((m, idx) => {
-        const dist = Math.min(m.distance_km, 25.0);
-        const radiusPx = (dist / 25.0) * 130;
-        
-        const angle = (idx * (360 / Math.max(matches.length, 1)) + 30) * (Math.PI / 180);
-        const cx = 220;
-        const cy = 155;
-        const x = cx + radiusPx * Math.cos(angle) - 4;
-        const y = cy + radiusPx * Math.sin(angle) - 4;
-
-        const dot = document.createElement("div");
-        dot.className = "radar-dot";
-        dot.style.left = `${Math.round(x)}px`;
-        dot.style.top = `${Math.round(y)}px`;
-        dot.title = `${m.name} (${m.blood_group}) - approx. ${m.distance_km} km`;
-        radar.appendChild(dot);
-      });
+    async function executeCompleteDonation() {
+      if (!currentRequestId) return;
+      const donorUserId = currentUser ? currentUser.id : null;
+      if (!donorUserId) {
+        showToast("Please log in as an authenticated user to record donation.", "warning");
+        return;
+      }
+      try {
+        await LifeLinkAPI.completeDonation(currentRequestId, {
+          donor_user_id: donorUserId,
+          units: 1,
+          notes: "Clinical whole blood collection completed at hospital facility."
+        });
+        showToast("Donation verified & completed! Recorded in donor history.", "success");
+        await loadEmergencyData();
+      } catch (err) {
+        showToast("Complete donation failed: " + err.message, "error");
+      }
     }
 
-    document.addEventListener("DOMContentLoaded", initPage);
+    function escapeHtml(text) {
+      if (!text) return "";
+      const div = document.createElement("div");
+      div.innerText = text;
+      return div.innerHTML;
+    }
   </script>
 </body>
 </html>

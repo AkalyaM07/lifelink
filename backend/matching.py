@@ -1,6 +1,7 @@
 """
 Life-Link: Intelligent Medical Resource Matching Engine
-Phase 2: Blood Compatibility, Availability Filtering, and Haversine Distance
+Phase 2 & Unified Single-User Matching Architecture
+Blood Compatibility, Availability Filtering, Haversine Distance, and Matched Emergency Feed
 
 DISCLAIMER:
 This is a software coordination prototype. It does NOT replace clinical
@@ -9,6 +10,7 @@ must be verified by qualified medical professionals.
 """
 
 import math
+from datetime import date, timedelta
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 import models
@@ -37,6 +39,27 @@ BLOOD_COMPATIBILITY: Dict[str, List[str]] = {
     "AB+": ["AB+", "AB-", "A+", "A-", "B+", "B-", "O+", "O-"]
 }
 
+# Reverse compatibility: For a donor's blood group, which recipient blood groups can they donate to
+DONOR_CAN_GIVE_TO: Dict[str, List[str]] = {
+    "O-": ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"],
+    "O+": ["O+", "A+", "B+", "AB+"],
+    "A-": ["A-", "A+", "AB-", "AB+"],
+    "A+": ["A+", "AB+"],
+    "B-": ["B-", "B+", "AB-", "AB+"],
+    "B+": ["B+", "AB+"],
+    "AB-": ["AB-", "AB+"],
+    "AB+": ["AB+"]
+}
+
+# Configurable donation cooldown days by component
+# Final eligibility is always determined by the medical / blood-bank team
+CONFIGURABLE_COOLDOWN_DAYS: Dict[str, int] = {
+    "whole_blood": 90,
+    "packed_rbc": 90,
+    "platelets": 14,
+    "plasma": 28
+}
+
 
 def get_compatible_donor_groups(recipient_blood_group: str) -> List[str]:
     """
@@ -45,6 +68,14 @@ def get_compatible_donor_groups(recipient_blood_group: str) -> List[str]:
     """
     clean_group = recipient_blood_group.strip().upper()
     return BLOOD_COMPATIBILITY.get(clean_group, [])
+
+
+def get_recipient_groups_donor_can_help(donor_blood_group: str) -> List[str]:
+    """
+    Returns list of recipient blood groups that a given donor blood group can help.
+    """
+    clean_group = donor_blood_group.strip().upper()
+    return DONOR_CAN_GIVE_TO.get(clean_group, [])
 
 
 # =====================================================================
@@ -85,7 +116,57 @@ def haversine_distance(lat1: Optional[float], lon1: Optional[float],
 
 
 # =====================================================================
-# 3. MATCHING ENGINE CORE
+# 3. ELIGIBILITY / COOLDOWN REMINDER CALCULATION
+# =====================================================================
+
+def calculate_eligibility_reminder(
+    last_donation_date: Optional[date],
+    donation_type: str = "whole_blood",
+    custom_cooldown_days: Optional[int] = None
+) -> Dict[str, Any]:
+    """
+    Calculates the next review/reminder date for a donor based on configurable rules.
+    Does NOT hard-code universal medical absolutes:
+    clearly notes that final eligibility is determined by the hospital/blood-bank team.
+    """
+    cooldown = custom_cooldown_days or CONFIGURABLE_COOLDOWN_DAYS.get(donation_type.lower(), 90)
+    
+    if not last_donation_date:
+        return {
+            "has_donated_before": False,
+            "last_donation_date": None,
+            "next_review_date": None,
+            "cooldown_days": cooldown,
+            "is_system_available": True,
+            "status_message": "You may be able to respond to eligible blood requests. Final clinical eligibility is determined by the hospital or blood bank team upon arrival."
+        }
+
+    next_review = last_donation_date + timedelta(days=cooldown)
+    today = date.today()
+    days_remaining = (next_review - today).days
+
+    if days_remaining > 0:
+        return {
+            "has_donated_before": True,
+            "last_donation_date": last_donation_date,
+            "next_review_date": next_review,
+            "cooldown_days": cooldown,
+            "is_system_available": False,
+            "status_message": f"Recent donation recorded on {last_donation_date.strftime('%d %B %Y')}. Configured review period is {cooldown} days. Estimated next review: {next_review.strftime('%d %B %Y')} ({days_remaining} day(s) remaining). Final eligibility is determined by the medical/blood-bank team."
+        }
+    else:
+        return {
+            "has_donated_before": True,
+            "last_donation_date": last_donation_date,
+            "next_review_date": next_review,
+            "cooldown_days": cooldown,
+            "is_system_available": True,
+            "status_message": f"Review period completed ({cooldown} days since {last_donation_date.strftime('%d %B %Y')}). You may be able to respond to eligible blood requests. Final eligibility is determined by the medical/blood-bank team."
+        }
+
+
+# =====================================================================
+# 4. MATCHING ENGINE CORE (FOR EMERGENCY REQUEST)
 # =====================================================================
 
 def find_matches_for_request(
@@ -105,6 +186,8 @@ def find_matches_for_request(
     
     Ranking:
     - Sorted by distance ascending (closest donors first)
+    Privacy safe:
+    - Never exposes exact address or private phone number.
     """
     recipient_group = emergency_request.blood_group.strip().upper()
     compatible_groups = get_compatible_donor_groups(recipient_group)
@@ -127,6 +210,15 @@ def find_matches_for_request(
         models.Donor.availability == "AVAILABLE"
     ).all()
 
+    # Pre-fetch any existing responses for this request to check status
+    existing_responses = {
+        r.donor_id: r.status
+        for r in db.query(models.DonorResponse).filter(
+            models.DonorResponse.emergency_request_id == emergency_request.id
+        ).all()
+        if r.donor_id is not None
+    }
+
     matches = []
     for donor in candidate_donors:
         # Calculate approximate distance from emergency hospital
@@ -141,12 +233,14 @@ def find_matches_for_request(
         if max_distance_km is not None and dist > max_distance_km:
             continue
 
-        # Check donor eligibility if last_donation_date is available (standard 90 days for whole blood)
-        # Note: Phase 4 will introduce full dynamic eligibility engine, but we include safe check here
-        is_eligible = True
-        if donor.last_donation_date:
-            # We preserve donor's eligibility flag for scoring
-            pass
+        # Check donor eligibility if last_donation_date is available
+        eligibility = calculate_eligibility_reminder(donor.last_donation_date, donor.donation_type or "whole_blood")
+        if not eligibility["is_system_available"]:
+            # Cooldown not met, skip donor from active matches
+            continue
+
+        # Response status if already responded
+        resp_status = existing_responses.get(donor.id, "WAITING")
 
         # Build clean donor match record without exposing private address or full phone
         matches.append({
@@ -156,7 +250,9 @@ def find_matches_for_request(
             "distance_km": dist,
             "availability": donor.availability,
             "phone_verified": donor.is_verified,
-            "approximate_location": donor.city
+            "approximate_location": donor.city,
+            "user_id": donor.user_id,
+            "response_status": resp_status
         })
 
     # Sort primarily by proximity (closest donor first)
@@ -180,3 +276,89 @@ def find_matches_for_request(
         "matches": matches,
         "message": message
     }
+
+
+# =====================================================================
+# 5. MATCHED BLOOD REQUEST FEED FOR USERS (BLOOD REQUESTS I CAN HELP WITH)
+# =====================================================================
+
+def find_matched_emergencies_for_user(
+    db: Session,
+    user: models.User,
+    max_distance_km: Optional[float] = None
+) -> List[Dict[str, Any]]:
+    """
+    Finds active emergency requests that the current user may be able to help with
+    according to biological blood compatibility and donor availability.
+    Creates the second donor discovery path (User opens account -> Voluntary response).
+    """
+    # If user is marked UNAVAILABLE or REVIEW_NEEDED, they cannot respond
+    if user.availability != "AVAILABLE":
+        return []
+
+    # Check eligibility cooldown
+    eligibility = calculate_eligibility_reminder(user.last_donation_date, user.donation_type or "whole_blood")
+    if not eligibility["is_system_available"]:
+        return []
+
+    user_blood = (user.blood_group or "O+").strip().upper()
+    recipient_groups_can_help = get_recipient_groups_donor_can_help(user_blood)
+
+    if not recipient_groups_can_help:
+        return []
+
+    # Query active emergency requests
+    active_statuses = [
+        "SEARCHING", "COMPATIBLE_DONORS_FOUND", "WAITING_FOR_RESPONSES",
+        "PARTIALLY_FULFILLED", "DONOR_ACCEPTED"
+    ]
+    candidate_requests = db.query(models.EmergencyRequest).filter(
+        models.EmergencyRequest.blood_group.in_(recipient_groups_can_help),
+        models.EmergencyRequest.status.in_(active_statuses)
+    ).all()
+
+    # Pre-fetch user's previous responses
+    user_responses = {
+        r.emergency_request_id: r.action
+        for r in db.query(models.DonorResponse).filter(
+            models.DonorResponse.user_id == user.id
+        ).all()
+    }
+
+    matched_feed = []
+    for req in candidate_requests:
+        # Distance calculation
+        dist = haversine_distance(
+            req.latitude,
+            req.longitude,
+            user.latitude,
+            user.longitude
+        )
+
+        if max_distance_km is not None and dist > max_distance_km:
+            continue
+
+        has_responded = req.id in user_responses
+        user_action = user_responses.get(req.id)
+
+        matched_feed.append({
+            "emergency_request_id": req.id,
+            "hospital_name": req.hospital_name,
+            "hospital_city": req.hospital_city or "Coimbatore",
+            "blood_group": req.blood_group,
+            "component": req.component or "whole_blood",
+            "units_needed": req.units_needed,
+            "units_accepted": req.units_accepted,
+            "urgency": req.urgency,
+            "status": req.status,
+            "distance_km": dist,
+            "requester_name": req.requester_name,
+            "patient_name": req.patient_name,
+            "has_user_responded": has_responded,
+            "user_action": user_action,
+            "created_at": req.created_at
+        })
+
+    # Sort closest first
+    matched_feed.sort(key=lambda item: item["distance_km"])
+    return matched_feed

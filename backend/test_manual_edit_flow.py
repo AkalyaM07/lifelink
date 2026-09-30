@@ -18,8 +18,35 @@ Specifically tests:
 
 import requests
 import json
+from fastapi.testclient import TestClient
+from main import app
 
 BASE_URL = "http://127.0.0.1:8000"
+
+class ClientWrapper:
+    def __init__(self):
+        self.test_client = TestClient(app)
+        self.live = False
+        try:
+            r = requests.get("http://127.0.0.1:8000/", timeout=0.3)
+            if r.status_code == 200:
+                self.live = True
+        except Exception:
+            self.live = False
+
+    def post(self, url, **kwargs):
+        if self.live:
+            return requests.post(url, **kwargs)
+        path = url.replace(BASE_URL, "")
+        return self.test_client.post(path, **kwargs)
+
+    def get(self, url, **kwargs):
+        if self.live:
+            return requests.get(url, **kwargs)
+        path = url.replace(BASE_URL, "")
+        return self.test_client.get(path, **kwargs)
+
+client_req = ClientWrapper()
 
 def test_emergency_confirmation_flow():
     print("=" * 70)
@@ -31,7 +58,7 @@ def test_emergency_confirmation_flow():
     # -------------------------------------------------------------
     print("\n--- [Scenario 1] Testing Full NLP Input: 'KMCH la O positive blood rendu units urgent ah venum' ---")
     msg1 = "KMCH la O positive blood rendu units urgent ah venum"
-    res1 = requests.post(f"{BASE_URL}/ai/parse-request", json={
+    res1 = client_req.post(f"{BASE_URL}/ai/parse-request", json={
         "message": msg1,
         "auto_create": False,
         "contact_phone": "+91 94433 12345"
@@ -47,7 +74,7 @@ def test_emergency_confirmation_flow():
     print(f" -> AI extraction successful: {parsed1['hospital_name']}, {parsed1['blood_group']}, {parsed1['units_required']} units, {parsed1['urgency']}")
 
     # Create via confirmed review values
-    create1 = requests.post(f"{BASE_URL}/emergency-requests", json={
+    create1 = client_req.post(f"{BASE_URL}/emergency-requests", json={
         "hospital_name": parsed1["hospital_name"],
         "blood_group": parsed1["blood_group"],
         "units_needed": parsed1["units_required"],
@@ -63,7 +90,7 @@ def test_emergency_confirmation_flow():
     print(f" -> Track Emergency link target: tracker.html?id={created1_id}")
 
     # Verify tracker endpoint
-    track1 = requests.get(f"{BASE_URL}/emergency-requests/{created1_id}")
+    track1 = client_req.get(f"{BASE_URL}/emergency-requests/{created1_id}")
     assert track1.status_code == 200
     assert track1.json()["hospital_name"] == "KMCH"
     print(" -> Scenario 1 PASSED: End-to-end full NLP flow verified.")
@@ -73,7 +100,7 @@ def test_emergency_confirmation_flow():
     # -------------------------------------------------------------
     print("\n--- [Scenario 2] Testing Missing Blood Group & Manual Edit in Review Form ---")
     msg2 = "3 units needed at PSG Hospital urgently"
-    res2 = requests.post(f"{BASE_URL}/ai/parse-request", json={
+    res2 = client_req.post(f"{BASE_URL}/ai/parse-request", json={
         "message": msg2,
         "auto_create": False,
         "contact_phone": "+91 94433 12345"
@@ -113,7 +140,7 @@ def test_emergency_confirmation_flow():
     print(" -> Dynamic validation check: All required fields are PRESENT in current form values.")
 
     # 4. Confirm Emergency Request (POST /emergency-requests)
-    create2 = requests.post(f"{BASE_URL}/emergency-requests", json=manual_form_values)
+    create2 = client_req.post(f"{BASE_URL}/emergency-requests", json=manual_form_values)
     assert create2.status_code == 201, f"Expected 201, got {create2.status_code}: {create2.text}"
     created2 = create2.json()
     created2_id = created2["id"]
@@ -127,7 +154,7 @@ def test_emergency_confirmation_flow():
     assert created2["hospital_name"] == "PSG Hospital"
 
     # 5. Verify Tracker link works
-    track2 = requests.get(f"{BASE_URL}/emergency-requests/{created2_id}")
+    track2 = client_req.get(f"{BASE_URL}/emergency-requests/{created2_id}")
     assert track2.status_code == 200
     assert track2.json()["id"] == created2_id
     print(f" -> Verified Track Emergency link: tracker.html?id={created2_id} loads Emergency #{created2_id} correctly!")

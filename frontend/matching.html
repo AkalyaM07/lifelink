@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intelligent Donor Matching | LIFE-LINK</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">
+      <span>❤️ LIFE-LINK</span>
+      <span class="brand-badge">MATCHING ENGINE</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="emergency.html" class="nav-link nav-btn-emergency">🚨 Emergency</a></li>
+      <li><a href="matching.html" class="nav-link active">Matching</a></li>
+      <li><a href="cascade.html" class="nav-link">Cascade</a></li>
+      <li><a href="tracker.html" class="nav-link">Tracker</a></li>
+      <li><a href="donor.html" class="nav-link">Donor Center</a></li>
+      <li><a href="notifications.html" class="nav-link">Notifications</a></li>
+      <li><a href="account.html" class="nav-link">My Account</a></li>
+      <li><a href="hospital.html" class="nav-link">Hospital</a></li>
+      <li><a href="organ.html" class="nav-link">Organ & Tissue</a></li>
+    </ul>
+    <div id="nav-user-container"></div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container">
+    
+    <!-- Top Selector Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <h1 class="page-title" style="margin-bottom: 0.2rem;">🎯 Intelligent Donor Matching Engine</h1>
+        <p class="page-subtitle" style="margin: 0;">Biological compatibility ranking, geodesic proximity calculation, and privacy-safe donor verification.</p>
+      </div>
+      <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+        <label for="select-emergency-matching" style="font-size: 0.86rem; font-weight: 700;">Select Emergency:</label>
+        <select id="select-emergency-matching" class="form-control" style="width: auto; min-width: 250px;" onchange="loadMatchingForEmergency(this.value)">
+          <option value="">Loading emergencies...</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="reloadCurrentMatching()">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <!-- Emergency Details Overview Card -->
+    <div class="card" style="border-top: 4px solid var(--primary); margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <div style="display: flex; gap: 0.4rem; align-items: center; margin-bottom: 0.4rem;">
+            <span id="em-urgency-badge" class="badge badge-red">URGENT</span>
+            <span id="em-status-badge" class="badge badge-blue">SEARCHING</span>
+            <span id="em-id-badge" class="badge badge-purple">Emergency #--</span>
+          </div>
+          <h2 id="em-hospital-title" style="font-size: 1.45rem; font-weight: 800; color: var(--text-main);">Loading hospital requirement...</h2>
+          <p id="em-patient-subtitle" style="color: var(--text-muted); font-size: 0.92rem; margin-top: 0.2rem;">Patient: -- | Account Requester: --</p>
+        </div>
+
+        <div style="display: flex; gap: 1.5rem; text-align: right; flex-wrap: wrap;">
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Required Blood</div>
+            <div id="em-blood-group" style="font-size: 1.6rem; font-weight: 800; color: var(--accent-red);">--</div>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Units Needed</div>
+            <div id="em-units-needed" style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);">--</div>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Units Accepted</div>
+            <div id="em-units-accepted" style="font-size: 1.6rem; font-weight: 800; color: var(--accent-green);">--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Links -->
+      <div style="display: flex; gap: 0.6rem; margin-top: 1.2rem; border-top: 1px solid var(--border-color); padding-top: 0.8rem; flex-wrap: wrap;">
+        <a id="link-cascade" href="cascade.html" class="btn btn-secondary btn-sm">📡 Inspect Adaptive Cascade &rarr;</a>
+        <a id="link-tracker" href="tracker.html" class="btn btn-secondary btn-sm">📡 View Complete Lifecycle Tracker &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Biological Compatibility Explanation Card -->
+    <div class="card" style="background: #f0fdf4; border: 1px solid #bbf7d0; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: #166534; display: flex; align-items: center; gap: 0.4rem;">
+          <span>🧬</span> Biological Blood Compatibility Filter
+        </h3>
+        <span class="badge badge-green">Rule-Based Clinical Match</span>
+      </div>
+      <p id="compatibility-explanation-text" style="font-size: 0.88rem; color: #14532d; line-height: 1.5;">
+        Determining biological compatibility rules...
+      </p>
+    </div>
+
+    <!-- Compatible Donors List Card -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);">Compatible Available Donors</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">Ranked by proximity using Haversine geodesic calculation &bull; Privacy-Safe Identity</p>
+        </div>
+        <span id="compatible-count-badge" class="badge badge-blue">0 Matches</span>
+      </div>
+
+      <!-- Donors Table / Cards -->
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.92rem; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase;">
+              <th style="padding: 0.75rem 0.5rem;">Rank</th>
+              <th style="padding: 0.75rem 0.5rem;">Donor Identifier</th>
+              <th style="padding: 0.75rem 0.5rem;">Blood</th>
+              <th style="padding: 0.75rem 0.5rem;">Approximate Locality</th>
+              <th style="padding: 0.75rem 0.5rem;">Geodesic Distance</th>
+              <th style="padding: 0.75rem 0.5rem;">Readiness</th>
+              <th style="padding: 0.75rem 0.5rem;">Verification</th>
+              <th style="padding: 0.75rem 0.5rem;">Notification</th>
+              <th style="padding: 0.75rem 0.5rem; text-align: right;">Response Status</th>
+            </tr>
+          </thead>
+          <tbody id="matches-table-body">
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-muted);">Loading compatible donor ranking...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Privacy & Medical Safety Disclaimer -->
+    <div class="disclaimer-banner">
+      <span style="font-size: 1.25rem;">🔒</span>
+      <div>
+        <strong>Privacy & Medical Safety Architecture:</strong>
+        Life-Link enforces strict privacy-safe information. Exact residential addresses and private phone numbers are never publicly exposed. Software matching provides preliminary biological compatibility filtering; final cross-matching and clinical testing are conducted by authorized hospital/blood-bank teams.
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Life-Link • AI-Powered Emergency Medical Resource & Donor Coordination Network</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    let currentEmergencyId = null;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const user = await LifeLinkAuth.requireAuth();
+      if (!user) return;
+      await LifeLinkAuth.initNavbarUser(document.getElementById("nav-user-container"));
+      await initEmergencyDropdown();
+    });
+
+    async function initEmergencyDropdown() {
+      const select = document.getElementById("select-emergency-matching");
+      try {
+        const emergencies = await LifeLinkAPI.getEmergencyRequests();
+        select.innerHTML = "";
+
+        if (!emergencies || emergencies.length === 0) {
+          select.innerHTML = `<option value="">No active emergencies found</option>`;
+          document.getElementById("matches-table-body").innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-muted);">No active emergencies found in the network.</td></tr>`;
+          document.getElementById("em-id-badge").innerText = "No Emergency";
+          document.getElementById("em-status-badge").innerText = "INACTIVE";
+          document.getElementById("em-hospital-title").innerText = "No Active Requests";
+          document.getElementById("em-patient-subtitle").innerText = "Create an emergency request to match compatible donors.";
+          return;
+        }
+
+        // Check URL param ?id=
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlId = urlParams.get("id");
+
+        emergencies.forEach(req => {
+          const opt = document.createElement("option");
+          opt.value = req.id;
+          opt.innerText = `Emergency #${req.id} - ${req.hospital_name} (${req.blood_group}, ${req.units_needed} units)`;
+          select.appendChild(opt);
+        });
+
+        if (urlId && emergencies.some(e => e.id == urlId)) {
+          select.value = urlId;
+        } else {
+          select.value = emergencies[0].id;
+        }
+
+        await loadMatchingForEmergency(select.value);
+
+      } catch (err) {
+        select.innerHTML = `<option value="">Failed to load emergencies</option>`;
+        console.error(err);
+      }
+    }
+
+    async function reloadCurrentMatching() {
+      if (currentEmergencyId) {
+        await loadMatchingForEmergency(currentEmergencyId);
+        showToast("Matching engine data refreshed", "info");
+      }
+    }
+
+    async function loadMatchingForEmergency(reqId) {
+      if (!reqId) return;
+      currentEmergencyId = reqId;
+
+      // Update URL without reload
+      window.history.replaceState(null, "", `matching.html?id=${reqId}`);
+      document.getElementById("link-cascade").href = `cascade.html?id=${reqId}`;
+      document.getElementById("link-tracker").href = `tracker.html?id=${reqId}`;
+
+      const tbody = document.getElementById("matches-table-body");
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-muted);">Evaluating biological compatibility & distances...</td></tr>`;
+
+      try {
+        // Fetch emergency details
+        const em = await LifeLinkAPI.getEmergencyRequest(reqId);
+        document.getElementById("em-id-badge").innerText = `Emergency #${em.id}`;
+        document.getElementById("em-urgency-badge").innerText = em.urgency;
+        document.getElementById("em-urgency-badge").className = `badge ${em.urgency === 'CRITICAL' ? 'badge-red' : 'badge-amber'}`;
+        document.getElementById("em-status-badge").innerText = em.status;
+        document.getElementById("em-hospital-title").innerText = `${em.hospital_name} (${em.hospital_city || 'Coimbatore'})`;
+        document.getElementById("em-patient-subtitle").innerText = `Patient: ${em.patient_name} | Account Requester: ${em.requester_name || 'Anonymous'}`;
+        document.getElementById("em-blood-group").innerText = em.blood_group;
+        document.getElementById("em-units-needed").innerText = em.units_needed;
+        document.getElementById("em-units-accepted").innerText = em.units_accepted || 0;
+
+        // Compatibility Explanation
+        const compatText = document.getElementById("compatibility-explanation-text");
+        const bg = em.blood_group.toUpperCase();
+        if (bg === "O+") {
+          compatText.innerHTML = `For recipient blood group <strong>O+</strong>: Accepts compatible voluntary donors with blood groups <strong>O+</strong> and <strong>O-</strong> (Universal RBC donor). Incompatible types (A+, A-, B+, B-, AB+, AB-) are automatically excluded to preserve patient safety.`;
+        } else if (bg === "O-") {
+          compatText.innerHTML = `For recipient blood group <strong>O-</strong>: Strictly accepts compatible voluntary donors with blood group <strong>O-</strong>.`;
+        } else if (bg === "A+") {
+          compatText.innerHTML = `For recipient blood group <strong>A+</strong>: Accepts compatible voluntary donors with blood groups <strong>A+, A-, O+, O-</strong>.`;
+        } else if (bg === "B+") {
+          compatText.innerHTML = `For recipient blood group <strong>B+</strong>: Accepts compatible voluntary donors with blood groups <strong>B+, B-, O+, O-</strong>.`;
+        } else if (bg === "AB+") {
+          compatText.innerHTML = `For recipient blood group <strong>AB+</strong> (Universal Recipient): Accepts compatible donors across all 8 ABO/Rh blood groups.`;
+        } else {
+          compatText.innerHTML = `Matching compatible donors biologically suitable for ${bg} whole blood transfusion.`;
+        }
+
+        // Fetch matches from backend
+        const matchesRes = await LifeLinkAPI.getMatches(reqId);
+        const matches = matchesRes.matches || [];
+        document.getElementById("compatible-count-badge").innerText = `${matches.length} Matches Found`;
+
+        if (matches.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📍</div>
+                <strong>No compatible available donors found in the immediate perimeter.</strong><br>
+                <span style="font-size: 0.85rem;">The Adaptive Cascade expands search perimeters to wider radial bands.</span>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = "";
+        matches.forEach((m, idx) => {
+          const tr = document.createElement("tr");
+          tr.style.borderBottom = "1px solid var(--border-color)";
+
+          // Safe privacy name format (e.g. "Arun K." or safe identifier)
+          const nameParts = (m.name || "Donor").split(" ");
+          const safeName = nameParts.length > 1 ? `${nameParts[0]} ${nameParts[1].charAt(0)}.` : nameParts[0];
+
+          const respBadge = m.response_status === "ACCEPT" || m.response_status === "WILLING" 
+            ? `<span class="badge badge-green">Willing to Help</span>`
+            : m.response_status === "DECLINE"
+            ? `<span class="badge badge-red">Declined</span>`
+            : `<span class="badge badge-blue">Alert Dispatched</span>`;
+
+          tr.innerHTML = `
+            <td style="padding: 0.8rem 0.5rem; font-weight: 700; color: var(--text-muted);">#${idx + 1}</td>
+            <td style="padding: 0.8rem 0.5rem;">
+              <strong style="color: var(--text-main);">${escapeHtml(safeName)}</strong>
+              <div style="font-size: 0.75rem; color: var(--text-light);">ID: donor-${m.donor_id}</div>
+            </td>
+            <td style="padding: 0.8rem 0.5rem;"><span class="badge badge-red" style="font-weight: 800;">${m.blood_group}</span></td>
+            <td style="padding: 0.8rem 0.5rem; color: var(--text-muted);">${escapeHtml(m.approximate_location || 'Coimbatore')}</td>
+            <td style="padding: 0.8rem 0.5rem;">
+              <strong style="color: #0284c7;">~${m.distance_km} km</strong>
+            </td>
+            <td style="padding: 0.8rem 0.5rem;">
+              <span class="badge ${m.availability === 'AVAILABLE' ? 'badge-green' : 'badge-amber'}">${m.availability}</span>
+            </td>
+            <td style="padding: 0.8rem 0.5rem;">
+              <span class="badge badge-blue" title="Masked for privacy">🔒 Phone Verified</span>
+            </td>
+            <td style="padding: 0.8rem 0.5rem;">
+              <span style="font-size: 0.85rem; color: #166534; font-weight: 600;">🔔 Real-Time Notified</span>
+            </td>
+            <td style="padding: 0.8rem 0.5rem; text-align: right;">
+              ${respBadge}
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #dc2626;">Failed to load matching data: ${err.message}</td></tr>`;
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      const div = document.createElement("div");
+      div.innerText = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

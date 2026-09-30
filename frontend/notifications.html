@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications Center | LIFE-LINK</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">
+      <span>❤️ LIFE-LINK</span>
+      <span class="brand-badge">NOTIFICATIONS</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="emergency.html" class="nav-link nav-btn-emergency">🚨 Emergency</a></li>
+      <li><a href="matching.html" class="nav-link">Matching</a></li>
+      <li><a href="cascade.html" class="nav-link">Cascade</a></li>
+      <li><a href="tracker.html" class="nav-link">Tracker</a></li>
+      <li><a href="donor.html" class="nav-link">Donor Center</a></li>
+      <li><a href="notifications.html" class="nav-link active">Notifications</a></li>
+      <li><a href="account.html" class="nav-link">My Account</a></li>
+      <li><a href="hospital.html" class="nav-link">Hospital</a></li>
+      <li><a href="organ.html" class="nav-link">Organ & Tissue</a></li>
+    </ul>
+    <div id="nav-user-container"></div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container" style="max-width: 860px;">
+    
+    <div class="page-header" style="text-align: left; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <h1 class="page-title" style="margin-bottom: 0.2rem;">🔔 Verified Notifications Center</h1>
+        <p class="page-subtitle" style="margin: 0;">Verified backend notifications for distress alerts, cascade expansions, and hospital updates.</p>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="markAllRead()">✓ Mark All Read</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadUserNotifications()">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div style="display: flex; gap: 0.4rem; margin-bottom: 1.2rem; flex-wrap: wrap;">
+      <button class="chip" id="filter-all" onclick="filterNotifications('ALL')">All Notifications</button>
+      <button class="chip" id="filter-emergency" onclick="filterNotifications('EMERGENCY_ALERT')">🩸 Emergency Alerts</button>
+      <button class="chip" id="filter-cascade" onclick="filterNotifications('CASCADE_UPDATE')">🔄 Cascade Updates</button>
+      <button class="chip" id="filter-hospital" onclick="filterNotifications('HOSPITAL_UPDATE')">🏥 Hospital Updates</button>
+      <button class="chip" id="filter-screening" onclick="filterNotifications('SCREENING_UPDATE')">🩺 Screening Updates</button>
+      <button class="chip" id="filter-donation" onclick="filterNotifications('DONATION_COMPLETED')">🟢 Completed Donations</button>
+    </div>
+
+    <!-- Notifications List Container -->
+    <div id="notifications-list-container">
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Loading notifications...</p>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Life-Link • AI-Powered Emergency Medical Resource & Donor Coordination Network</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    let currentUser = null;
+    let allNotifications = [];
+    let currentFilter = 'ALL';
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      currentUser = await LifeLinkAuth.requireAuth();
+      if (!currentUser) return;
+      await LifeLinkAuth.initNavbarUser(document.getElementById("nav-user-container"));
+      await loadUserNotifications();
+    });
+
+    async function loadUserNotifications() {
+      if (!currentUser) return;
+      const container = document.getElementById("notifications-list-container");
+      container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">Fetching verified notifications...</p>`;
+
+      try {
+        allNotifications = await LifeLinkAPI.getUserNotifications(currentUser.id);
+        renderNotifications();
+      } catch (err) {
+        container.innerHTML = `<p style="color: #dc2626;">Failed to load notifications: ${err.message}</p>`;
+      }
+    }
+
+    function filterNotifications(filterType) {
+      currentFilter = filterType;
+      renderNotifications();
+    }
+
+    function renderNotifications() {
+      const container = document.getElementById("notifications-list-container");
+      let filtered = allNotifications;
+
+      if (currentFilter !== 'ALL') {
+        filtered = allNotifications.filter(n => n.type === currentFilter);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="card" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+            <div style="font-size: 1.8rem; margin-bottom: 0.4rem;">🔕</div>
+            <strong>No notifications in this view.</strong>
+            <p style="font-size: 0.85rem; margin-top: 0.2rem;">Notifications appear strictly when actual verified system events occur.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = "";
+      filtered.forEach(n => {
+        const item = document.createElement("div");
+        item.className = `notif-item ${!n.is_read ? 'unread' : ''}`;
+
+        const icon = n.type === 'EMERGENCY_ALERT' ? '🩸' : n.type === 'CASCADE_UPDATE' ? '🔄' : n.type === 'HOSPITAL_UPDATE' ? '🏥' : n.type === 'SCREENING_UPDATE' ? '🩺' : '🟢';
+
+        item.innerHTML = `
+          <div style="font-size: 1.5rem; line-height: 1;">${icon}</div>
+          <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.4rem;">
+              <div>
+                <strong style="color: var(--text-main); font-size: 0.96rem;">${escapeHtml(n.title)}</strong>
+                ${!n.is_read ? `<span class="badge badge-blue" style="font-size: 0.68rem; margin-left: 0.4rem;">New</span>` : ""}
+              </div>
+              <span style="font-size: 0.75rem; color: var(--text-light); font-weight: 600;">
+                ${new Date(n.created_at).toLocaleString()}
+              </span>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0.35rem 0 0.6rem; line-height: 1.45;">
+              ${escapeHtml(n.message)}
+            </p>
+            <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+              ${n.emergency_request_id ? `
+                <a href="tracker.html?id=${n.emergency_request_id}" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 2px 8px;">
+                  📡 Track Emergency #${n.emergency_request_id}
+                </a>
+              ` : ""}
+              ${!n.is_read ? `
+                <button class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 2px 8px;" onclick="markSingleRead(${n.id})">
+                  ✓ Mark Read
+                </button>
+              ` : ""}
+            </div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function markSingleRead(notifId) {
+      if (!currentUser) return;
+      try {
+        await LifeLinkAPI.markNotificationRead(currentUser.id, notifId);
+        const item = allNotifications.find(n => n.id === notifId);
+        if (item) item.is_read = true;
+        renderNotifications();
+        await LifeLinkAuth.initNavbarUser(document.getElementById("nav-user-container"));
+      } catch (err) {
+        showToast("Failed to mark read: " + err.message, "error");
+      }
+    }
+
+    async function markAllRead() {
+      if (!currentUser) return;
+      try {
+        await LifeLinkAPI.markAllNotificationsRead(currentUser.id);
+        allNotifications.forEach(n => n.is_read = true);
+        renderNotifications();
+        await LifeLinkAuth.initNavbarUser(document.getElementById("nav-user-container"));
+        showToast("All notifications marked as read", "success");
+      } catch (err) {
+        showToast("Failed to mark all read: " + err.message, "error");
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      const div = document.createElement("div");
+      div.innerText = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

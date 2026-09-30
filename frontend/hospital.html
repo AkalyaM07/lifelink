@@ -16,12 +16,17 @@
     </a>
     <ul class="nav-links">
       <li><a href="index.html" class="nav-link">Home</a></li>
-      <li><a href="emergency.html" class="nav-link nav-btn-emergency">🚨 Emergency Help</a></li>
-      <li><a href="donor.html" class="nav-link">Become a Donor</a></li>
-      <li><a href="tracker.html" class="nav-link">Track Emergency</a></li>
+      <li><a href="emergency.html" class="nav-link nav-btn-emergency">🚨 Emergency</a></li>
+      <li><a href="matching.html" class="nav-link">Matching</a></li>
+      <li><a href="cascade.html" class="nav-link">Cascade</a></li>
+      <li><a href="tracker.html" class="nav-link">Tracker</a></li>
+      <li><a href="donor.html" class="nav-link">Donor Center</a></li>
+      <li><a href="notifications.html" class="nav-link">Notifications</a></li>
+      <li><a href="account.html" class="nav-link" id="nav-account-link">My Account</a></li>
       <li><a href="hospital.html" class="nav-link active">Hospital</a></li>
       <li><a href="organ.html" class="nav-link">Organ & Tissue</a></li>
     </ul>
+    <div id="nav-user-container"></div>
   </nav>
 
   <!-- Main Container -->
@@ -140,11 +145,11 @@
         
         // Update counters
         document.getElementById("cnt-total-req").innerText = requests.length;
-        const active = requests.filter(r => r.status === "SEARCHING" || r.status === "DONOR_ACCEPTED").length;
+        const active = requests.filter(r => ["SEARCHING", "COMPATIBLE_DONORS_FOUND", "DONOR_ACCEPTED", "HOSPITAL_CONFIRMED", "SCREENING_PENDING", "SCREENING_COMPLETED", "TARGET_REACHED"].includes(r.status)).length;
         document.getElementById("cnt-active-req").innerText = active;
-        const reached = requests.filter(r => r.status === "TARGET_REACHED").length;
+        const reached = requests.filter(r => r.status === "DONATION_COMPLETED").length;
         document.getElementById("cnt-fulfilled-req").innerText = reached;
-        const partial = requests.filter(r => r.status === "PARTIALLY_FULFILLED" || r.status === "NO_MATCHES").length;
+        const partial = requests.filter(r => r.status === "PARTIALLY_FULFILLED" || r.status === "NO_MATCHES" || r.status === "NO_COMPATIBLE_DONORS").length;
         document.getElementById("cnt-partial-req").innerText = partial;
 
         const tbody = document.getElementById("emergencies-table-body");
@@ -159,7 +164,7 @@
           const tr = document.createElement("tr");
           tr.style.borderBottom = "1px solid var(--border-color)";
 
-          const statusBadgeClass = r.status === "TARGET_REACHED" ? "badge badge-green" : r.status === "PARTIALLY_FULFILLED" ? "badge badge-amber" : "badge badge-blue";
+          const statusBadgeClass = r.status === "DONATION_COMPLETED" ? "badge badge-green" : r.status === "TARGET_REACHED" ? "badge badge-green" : r.status === "PARTIALLY_FULFILLED" ? "badge badge-amber" : "badge badge-blue";
           const urgencyBadgeClass = r.urgency === "CRITICAL" ? "badge badge-red" : "badge badge-amber";
 
           tr.innerHTML = `
@@ -183,7 +188,10 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", loadHospitalData);
+    document.addEventListener("DOMContentLoaded", async () => {
+      await LifeLinkAuth.initNavbarUser(document.getElementById("nav-user-container"));
+      await loadHospitalData();
+    });
   </script>
 </body>
 </html>

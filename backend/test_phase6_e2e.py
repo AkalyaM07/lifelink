@@ -25,8 +25,35 @@ Automates the exact 20-step user journey from the Phase 6 specification:
 
 import requests
 import sys
+from fastapi.testclient import TestClient
+from main import app
 
 BASE_URL = "http://127.0.0.1:8000"
+
+class ClientWrapper:
+    def __init__(self):
+        self.test_client = TestClient(app)
+        self.live = False
+        try:
+            r = requests.get("http://127.0.0.1:8000/", timeout=0.3)
+            if r.status_code == 200:
+                self.live = True
+        except Exception:
+            self.live = False
+
+    def post(self, url, **kwargs):
+        if self.live:
+            return requests.post(url, **kwargs)
+        path = url.replace(BASE_URL, "")
+        return self.test_client.post(path, **kwargs)
+
+    def get(self, url, **kwargs):
+        if self.live:
+            return requests.get(url, **kwargs)
+        path = url.replace(BASE_URL, "")
+        return self.test_client.get(path, **kwargs)
+
+client_req = ClientWrapper()
 
 def run_phase6_test():
     print("=" * 70)
@@ -35,7 +62,7 @@ def run_phase6_test():
 
     # 1. Open homepage (Root health check)
     print("\n[Step 1 & 2] Checking Homepage & Backend Online Status...")
-    res = requests.get(f"{BASE_URL}/")
+    res = client_req.get(f"{BASE_URL}/")
     assert res.status_code == 200, f"Expected 200, got {res.status_code}"
     data = res.json()
     assert data["status"] == "online", f"Expected online, got {data['status']}"
@@ -44,7 +71,7 @@ def run_phase6_test():
     # 3 & 4 & 5. Emergency input: "KMCH la O positive blood rendu units urgent ah venum"
     input_text = "KMCH la O positive blood rendu units urgent ah venum"
     print(f"\n[Step 3, 4, 5] Testing AI Natural Language Parser with: '{input_text}'...")
-    ai_res = requests.post(f"{BASE_URL}/ai/parse-request", json={
+    ai_res = client_req.post(f"{BASE_URL}/ai/parse-request", json={
         "message": input_text,
         "auto_create": False,
         "contact_phone": "+91 94433 12345"
@@ -77,7 +104,7 @@ def run_phase6_test():
         "contact_phone": "+91 94433 12345",
         "notes": f"Phase 6 E2E Test: {input_text}"
     }
-    create_res = requests.post(f"{BASE_URL}/emergency-requests", json=create_payload)
+    create_res = client_req.post(f"{BASE_URL}/emergency-requests", json=create_payload)
     assert create_res.status_code == 201, f"Expected 201, got {create_res.status_code}"
     req_data = create_res.json()
     req_id = req_data["id"]
@@ -86,7 +113,7 @@ def run_phase6_test():
 
     # 9. Open tracker
     print(f"\n[Step 9] Opening Tracker for Emergency #{req_id}...")
-    track_res = requests.get(f"{BASE_URL}/emergency-requests/{req_id}")
+    track_res = client_req.get(f"{BASE_URL}/emergency-requests/{req_id}")
     assert track_res.status_code == 200
     track_data = track_res.json()
     assert track_data["id"] == req_id
@@ -94,7 +121,7 @@ def run_phase6_test():
 
     # 10. Verify matching information
     print(f"\n[Step 10] Verifying Compatible Donor Matches for Emergency #{req_id}...")
-    matches_res = requests.get(f"{BASE_URL}/emergency-requests/{req_id}/matches")
+    matches_res = client_req.get(f"{BASE_URL}/emergency-requests/{req_id}/matches")
     assert matches_res.status_code == 200
     matches_data = matches_res.json()
     print(f" -> Total Compatible Donors Found: {matches_data['total_compatible_found']}")
@@ -106,7 +133,7 @@ def run_phase6_test():
 
     # 11. Verify cascade information
     print(f"\n[Step 11] Verifying Adaptive Cascade Engine for Emergency #{req_id}...")
-    cascade_res = requests.get(f"{BASE_URL}/emergency-requests/{req_id}/cascade")
+    cascade_res = client_req.get(f"{BASE_URL}/emergency-requests/{req_id}/cascade")
     assert cascade_res.status_code == 200
     cascade_data = cascade_res.json()
     print(f" -> Cascade Status: '{cascade_data['status']}', Executed Rounds: {len(cascade_data['rounds'])}")
@@ -116,7 +143,7 @@ def run_phase6_test():
 
     # 12 & 13. Open donor portal & verify compatible donor appears
     print(f"\n[Step 12 & 13] Checking Donor Portal & Compatible Donors...")
-    donors_res = requests.get(f"{BASE_URL}/donors")
+    donors_res = client_req.get(f"{BASE_URL}/donors")
     assert donors_res.status_code == 200
     all_donors = donors_res.json()
     # Find an active O+ or O- donor
@@ -128,7 +155,7 @@ def run_phase6_test():
 
     # 14. Test Accept / Decline response
     print(f"\n[Step 14] Testing Donor ACCEPT response on Emergency #{req_id}...")
-    respond_res = requests.post(f"{BASE_URL}/emergency-requests/{req_id}/respond", json={
+    respond_res = client_req.post(f"{BASE_URL}/emergency-requests/{req_id}/respond", json={
         "donor_id": active_donor["id"],
         "action": "ACCEPT"
     })
@@ -141,7 +168,7 @@ def run_phase6_test():
 
     # 15 & 16. Return to tracker & verify status/accepted count updated
     print(f"\n[Step 15 & 16] Returning to Tracker to verify live response update...")
-    updated_req_res = requests.get(f"{BASE_URL}/emergency-requests/{req_id}")
+    updated_req_res = client_req.get(f"{BASE_URL}/emergency-requests/{req_id}")
     assert updated_req_res.status_code == 200
     updated_req = updated_req_res.json()
     print(f" -> Updated Status: '{updated_req['status']}', Units Accepted: {updated_req['units_accepted']}")
@@ -151,7 +178,7 @@ def run_phase6_test():
 
     # 17 & 18. Open Hospital dashboard & verify emergency information
     print(f"\n[Step 17 & 18] Verifying Hospital Dashboard displays Emergency #{req_id}...")
-    hosp_res = requests.get(f"{BASE_URL}/emergency-requests")
+    hosp_res = client_req.get(f"{BASE_URL}/emergency-requests")
     assert hosp_res.status_code == 200
     emergencies = hosp_res.json()
     found = any(e["id"] == req_id for e in emergencies)
@@ -160,7 +187,7 @@ def run_phase6_test():
 
     # 19 & 20. Organ & Tissue safety check (no public organ matching exists)
     print(f"\n[Step 19 & 20] Checking Organ & Tissue Safety Boundary...")
-    bad_organ_res = requests.get(f"{BASE_URL}/organ-matches")
+    bad_organ_res = client_req.get(f"{BASE_URL}/organ-matches")
     assert bad_organ_res.status_code in [404, 405], "Warning: public organ matching route should not exist!"
     print(" -> PASS: Confirmed NO public or distance-based organ allocation API exists.")
     print(" -> PASS: Organ & Tissue remains strictly dedicated to awareness, NOTTO/TNOS pathways, and routing.")

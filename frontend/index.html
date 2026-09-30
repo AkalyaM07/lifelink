@@ -16,12 +16,17 @@
     </a>
     <ul class="nav-links">
       <li><a href="index.html" class="nav-link active">Home</a></li>
-      <li><a href="emergency.html" class="nav-link nav-btn-emergency">🚨 Emergency Help</a></li>
-      <li><a href="donor.html" class="nav-link">Become a Donor</a></li>
-      <li><a href="tracker.html" class="nav-link">Track Emergency</a></li>
+      <li><a href="emergency.html" class="nav-link nav-btn-emergency">🚨 Emergency</a></li>
+      <li><a href="matching.html" class="nav-link">Matching</a></li>
+      <li><a href="cascade.html" class="nav-link">Cascade</a></li>
+      <li><a href="tracker.html" class="nav-link">Tracker</a></li>
+      <li><a href="donor.html" class="nav-link">Donor Center</a></li>
+      <li><a href="notifications.html" class="nav-link">Notifications</a></li>
+      <li><a href="account.html" class="nav-link">My Account</a></li>
       <li><a href="hospital.html" class="nav-link">Hospital</a></li>
       <li><a href="organ.html" class="nav-link">Organ & Tissue</a></li>
     </ul>
+    <div id="nav-user-container"></div>
   </nav>
 
   <!-- Main Container -->
@@ -29,15 +34,15 @@
 
     <!-- Hero Section -->
     <section class="hero">
-      <span class="hero-tag">⚡ AI-Powered Emergency Medical Coordination</span>
+      <span class="hero-tag">⚡ AI-Powered Emergency Medical Resource & Donor Coordination Network</span>
       <h1 class="hero-title">Every Second Counts in<br>Medical Emergencies</h1>
       <p class="hero-desc">
-        Life-Link bridges patients, hospitals, and voluntary blood donors using intelligent proximity matching and adaptive emergency cascades.
+        Life-Link unites patients, hospitals, and voluntary blood donors into one coordinated network using interactive multilingual AI understanding, intelligent biological proximity matching, and adaptive emergency cascades.
       </p>
       <div class="hero-actions">
-        <a href="emergency.html" class="btn btn-emergency">🚨 Need Emergency Help Now</a>
-        <a href="donor.html" class="btn btn-primary">🩸 Become a Voluntary Donor</a>
-        <a href="tracker.html" class="btn btn-secondary">📡 Live Command Center</a>
+        <a href="emergency.html" class="btn btn-emergency">🚨 Request Emergency Blood</a>
+        <a href="donor.html" class="btn btn-primary">🩸 Become Available to Help</a>
+        <a href="tracker.html" class="btn btn-secondary">📡 Track Emergency</a>
       </div>
     </section>
 
@@ -45,7 +50,7 @@
     <section class="grid-4" style="margin-bottom: 2.5rem;">
       <div class="stat-card">
         <div class="stat-value" id="stat-total-donors">-</div>
-        <div class="stat-label">Registered Donors</div>
+        <div class="stat-label">Registered Donors / Users</div>
       </div>
       <div class="stat-card">
         <div class="stat-value" id="stat-available-donors" style="color: var(--accent-green);">-</div>
@@ -61,36 +66,63 @@
       </div>
     </section>
 
-    <!-- How Life-Link Works: Informational Feature Cards -->
+    <!-- Concise Coordination Pipeline Explanation -->
+    <section class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%); border-left: 4px solid var(--primary);">
+      <h2 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 0.5rem; text-align: center;">Coordinated Emergency Lifecycle Flow</h2>
+      <p style="color: var(--text-muted); font-size: 0.92rem; text-align: center; margin-bottom: 1.5rem;">
+        The system guides every distress call through verified clinical coordination stages:
+      </p>
+
+      <div style="display: flex; justify-content: center; align-items: center; gap: 0.75rem; flex-wrap: wrap; text-align: center;">
+        <span class="badge badge-red" style="padding: 6px 12px; font-size: 0.85rem;">1. Request</span>
+        <span>&rarr;</span>
+        <span class="badge badge-blue" style="padding: 6px 12px; font-size: 0.85rem;">2. Understand</span>
+        <span>&rarr;</span>
+        <span class="badge badge-blue" style="padding: 6px 12px; font-size: 0.85rem;">3. Match</span>
+        <span>&rarr;</span>
+        <span class="badge badge-amber" style="padding: 6px 12px; font-size: 0.85rem;">4. Notify</span>
+        <span>&rarr;</span>
+        <span class="badge badge-green" style="padding: 6px 12px; font-size: 0.85rem;">5. Respond</span>
+        <span>&rarr;</span>
+        <span class="badge badge-blue" style="padding: 6px 12px; font-size: 0.85rem;">6. Coordinate</span>
+        <span>&rarr;</span>
+        <span class="badge badge-green" style="padding: 6px 12px; font-size: 0.85rem;">7. Donate</span>
+      </div>
+    </section>
+
+    <!-- Feature Pillars -->
     <section class="card">
-      <h2 style="font-size: 1.55rem; font-weight: 800; margin-bottom: 0.5rem; text-align: center;">How Life-Link Coordinates Emergencies</h2>
+      <h2 style="font-size: 1.55rem; font-weight: 800; margin-bottom: 0.5rem; text-align: center;">Life-Link Core Architecture</h2>
       <p style="color: var(--text-muted); font-size: 0.95rem; text-align: center; max-width: 650px; margin: 0 auto 1.5rem;">
-        An automated end-to-end pipeline connecting natural-language distress calls with verified nearby donors.
+        A privacy-safe platform connecting natural-language distress calls with verified nearby donors.
       </p>
       
       <div class="grid-3" style="margin-top: 1rem;">
         <div class="feature-card">
-          <span class="feature-card-icon">🗣️</span>
-          <h3>1. AI Emergency Understanding</h3>
+          <span class="feature-card-icon">🤖</span>
+          <h3>Interactive Multilingual AI Bot</h3>
           <p>
-            Patients or healthcare staff describe emergencies in natural English, Tamil, or Tanglish. The AI extracts hospital, blood group, component, units, and urgency level with clinical guardrails.
+            Supports English, Tamil, and Tanglish via text or browser voice input. Asks clarify missing blood group, units, or hospital details without inventing parameters. Provides an editable confirmation card before creation.
           </p>
+          <a href="emergency.html" class="btn btn-secondary btn-sm" style="margin-top: 0.8rem;">Open Emergency Bot &rarr;</a>
         </div>
 
         <div class="feature-card">
           <span class="feature-card-icon">🎯</span>
-          <h3>2. Intelligent Donor Matching</h3>
+          <h3>Intelligent Matching & Privacy</h3>
           <p>
-            The matching engine evaluates biological ABO/Rh compatibility, verified readiness, and precise geodesic distances via Haversine algorithms to instantly rank the closest suitable voluntary donors.
+            Evaluates biological ABO/Rh compatibility and geodesic distances using Haversine algorithm. Notifies all relevant compatible available donors while keeping exact residential addresses and phone numbers masked.
           </p>
+          <a href="matching.html" class="btn btn-secondary btn-sm" style="margin-top: 0.8rem;">View Matching Engine &rarr;</a>
         </div>
 
         <div class="feature-card">
           <span class="feature-card-icon">📡</span>
-          <h3>3. Adaptive Emergency Cascade</h3>
+          <h3>Adaptive Emergency Cascade</h3>
           <p>
-            Search perimeters expand dynamically (0–5 km immediate vicinity &rarr; 5–15 km extended city &rarr; 15–25 km metro zone) until required units are fulfilled, with automated regional blood bank escalation.
+            Progressively searches 0–5 km immediate radius, expanding to 5–15 km and 15–25 km metro zone until required units are met, with automated regional blood bank backup recommendation.
           </p>
+          <a href="cascade.html" class="btn btn-secondary btn-sm" style="margin-top: 0.8rem;">Inspect Cascade &rarr;</a>
         </div>
       </div>
     </section>
@@ -99,8 +131,8 @@
     <div class="disclaimer-banner">
       <span style="font-size: 1.25rem;">⚠️</span>
       <div>
-        <strong>Medical Safety & Prototype Disclaimer:</strong>
-        Life-Link is an emergency medical resource coordination platform designed to accelerate communication and resource discovery. It does not replace professional medical advice, clinical blood-bank cross-matching, or authorized organ allocation authorities.
+        <strong>Medical Safety & Clinical Disclaimer:</strong>
+        Life-Link is an emergency coordination and communication network. It does NOT make clinical guarantees or replace official blood-bank cross-matching, clinical screening, or hospital decisions. Software matching is strictly a preliminary compatibility filter. Final medical eligibility is determined by qualified medical/blood-bank personnel.
       </div>
     </div>
 
@@ -123,6 +155,7 @@
         } else {
           statusEl.innerText = "Offline";
           statusEl.style.color = "var(--accent-red)";
+          return;
         }
 
         const donors = await LifeLinkAPI.getDonors().catch(() => []);
@@ -131,7 +164,7 @@
         document.getElementById("stat-available-donors").innerText = available;
 
         const requests = await LifeLinkAPI.getEmergencyRequests().catch(() => []);
-        const active = requests.filter(r => r.status === "SEARCHING" || r.status === "PARTIALLY_FULFILLED" || r.status === "DONOR_ACCEPTED").length;
+        const active = requests.filter(r => ["SEARCHING", "COMPATIBLE_DONORS_FOUND", "DONOR_ACCEPTED", "HOSPITAL_CONFIRMED", "SCREENING_PENDING", "SCREENING_COMPLETED"].includes(r.status)).length;
         document.getElementById("stat-active-emergencies").innerText = active;
       } catch (e) {
         console.warn("Stats load failed:", e);
@@ -140,7 +173,12 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", loadStats);
+    document.addEventListener("DOMContentLoaded", async () => {
+      const user = await LifeLinkAuth.requireAuth();
+      if (!user) return;
+      await LifeLinkAuth.initNavbarUser(document.getElementById("nav-user-container"));
+      await loadStats();
+    });
   </script>
 </body>
 </html>

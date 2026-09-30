@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adaptive Emergency Cascade | LIFE-LINK</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .round-step-box {
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 1.25rem;
+      background: white;
+      margin-bottom: 1rem;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .round-step-box.active {
+      border: 2px solid var(--primary);
+      box-shadow: 0 4px 16px rgba(2, 132, 199, 0.12);
+    }
+    .round-step-box.success {
+      border-color: #86efac;
+      background: #f0fdf4;
+    }
+    .round-step-box.waiting {
+      border-color: #fde68a;
+      background: #fffbeb;
+    }
+    .timeline-event-item {
+      display: flex;
+      gap: 0.8rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px dashed var(--border-color);
+      align-items: flex-start;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">
+      <span>❤️ LIFE-LINK</span>
+      <span class="brand-badge">CASCADE ENGINE</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="emergency.html" class="nav-link nav-btn-emergency">🚨 Emergency</a></li>
+      <li><a href="matching.html" class="nav-link">Matching</a></li>
+      <li><a href="cascade.html" class="nav-link active">Cascade</a></li>
+      <li><a href="tracker.html" class="nav-link">Tracker</a></li>
+      <li><a href="donor.html" class="nav-link">Donor Center</a></li>
+      <li><a href="notifications.html" class="nav-link">Notifications</a></li>
+      <li><a href="account.html" class="nav-link">My Account</a></li>
+      <li><a href="hospital.html" class="nav-link">Hospital</a></li>
+      <li><a href="organ.html" class="nav-link">Organ & Tissue</a></li>
+    </ul>
+    <div id="nav-user-container"></div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container">
+    
+    <!-- Top Selector Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <h1 class="page-title" style="margin-bottom: 0.2rem;">📡 Dedicated Adaptive Emergency Cascade</h1>
+        <p class="page-subtitle" style="margin: 0;">Progressive radial perimeter expansion (0-5 km &rarr; 5-15 km &rarr; 15-25 km &rarr; Blood Bank Fallback).</p>
+      </div>
+      <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+        <label for="select-emergency-cascade" style="font-size: 0.86rem; font-weight: 700;">Select Emergency:</label>
+        <select id="select-emergency-cascade" class="form-control" style="width: auto; min-width: 250px;" onchange="loadCascadeForEmergency(this.value)">
+          <option value="">Loading emergencies...</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="reloadCurrentCascade()">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <!-- Active Cascade Overview Card -->
+    <div class="card" style="border-top: 4px solid var(--primary); margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <div style="display: flex; gap: 0.4rem; align-items: center; margin-bottom: 0.4rem;">
+            <span id="cas-urgency-badge" class="badge badge-red">CRITICAL</span>
+            <span id="cas-status-badge" class="badge badge-green">TARGET_REACHED</span>
+            <span id="cas-id-badge" class="badge badge-purple">Emergency #--</span>
+          </div>
+          <h2 id="cas-hospital-title" style="font-size: 1.45rem; font-weight: 800; color: var(--text-main);">Loading emergency...</h2>
+          <p id="cas-patient-subtitle" style="color: var(--text-muted); font-size: 0.92rem; margin-top: 0.2rem;">Patient: --</p>
+        </div>
+
+        <!-- Metric Badges -->
+        <div class="grid-4" style="gap: 0.8rem; margin: 0;">
+          <div class="stat-card" style="padding: 0.8rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Units Needed</div>
+            <div id="stat-needed" style="font-size: 1.4rem; font-weight: 800; color: var(--accent-red);">-</div>
+          </div>
+          <div class="stat-card" style="padding: 0.8rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Units Matched</div>
+            <div id="stat-matched" style="font-size: 1.4rem; font-weight: 800; color: var(--accent-green);">-</div>
+          </div>
+          <div class="stat-card" style="padding: 0.8rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Current Round</div>
+            <div id="stat-round" style="font-size: 1.4rem; font-weight: 800; color: var(--primary);">-</div>
+          </div>
+          <div class="stat-card" style="padding: 0.8rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Blood Bank Fallback</div>
+            <div id="stat-fallback" style="font-size: 1.1rem; font-weight: 800; color: var(--text-main);">NO</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Links -->
+      <div style="display: flex; gap: 0.6rem; margin-top: 1.2rem; border-top: 1px solid var(--border-color); padding-top: 0.8rem; flex-wrap: wrap;">
+        <a id="link-match" href="matching.html" class="btn btn-secondary btn-sm">🎯 View Intelligent Matching &rarr;</a>
+        <a id="link-track" href="tracker.html" class="btn btn-secondary btn-sm">📡 View Complete Lifecycle Tracker &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Progressive Search Expansion: Round-by-Round Display -->
+    <div style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.4rem;">Perimeter Expansion Architecture</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.2rem;">
+        Search radii expand progressively until required units are met, preventing unnecessary disturbance to distant donors.
+      </p>
+
+      <div id="cascade-rounds-container">
+        <!-- Rendered dynamically -->
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Loading cascade expansion rounds...</p>
+      </div>
+    </div>
+
+    <!-- Activity Timeline -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 0.3rem;">📜 Real-Time Cascade Activity Timeline</h3>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">Chronological ledger of verified search perimeters and donor dispatch events.</p>
+      
+      <div id="cascade-timeline-list">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+
+    <!-- Medical Protocol Disclaimer -->
+    <div class="disclaimer-banner">
+      <span style="font-size: 1.25rem;">⚠️</span>
+      <div>
+        <strong>Cascade Protocol Disclaimer:</strong>
+        The Adaptive Emergency Cascade optimizes donor contact to achieve emergency quota quickly. When regional donors are unavailable or exhausted, the system automatically triggers Blood Bank Fallback guidance for clinical requisition.
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Life-Link • AI-Powered Emergency Medical Resource & Donor Coordination Network</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    let currentEmergencyId = null;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const user = await LifeLinkAuth.requireAuth();
+      if (!user) return;
+      await LifeLinkAuth.initNavbarUser(document.getElementById("nav-user-container"));
+      await initEmergencyDropdown();
+    });
+
+    async function initEmergencyDropdown() {
+      const select = document.getElementById("select-emergency-cascade");
+      try {
+        const emergencies = await LifeLinkAPI.getEmergencyRequests();
+        select.innerHTML = "";
+
+        if (!emergencies || emergencies.length === 0) {
+          select.innerHTML = `<option value="">No active emergencies found</option>`;
+          document.getElementById("cascade-rounds-container").innerHTML = `<p style="color: var(--text-muted); font-size: 0.95rem; text-align: center; padding: 2rem;">No active emergencies found in the network. Create an emergency request to view adaptive cascade rounds.</p>`;
+          document.getElementById("cas-id-badge").innerText = "No Emergency";
+          document.getElementById("cas-status-badge").innerText = "INACTIVE";
+          document.getElementById("cas-hospital-title").innerText = "No Active Requests";
+          document.getElementById("cas-patient-subtitle").innerText = "";
+          return;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlId = urlParams.get("id");
+
+        emergencies.forEach(req => {
+          const opt = document.createElement("option");
+          opt.value = req.id;
+          opt.innerText = `Emergency #${req.id} - ${req.hospital_name} (${req.blood_group}, ${req.units_needed} units)`;
+          select.appendChild(opt);
+        });
+
+        if (urlId && emergencies.some(e => e.id == urlId)) {
+          select.value = urlId;
+        } else {
+          select.value = emergencies[0].id;
+        }
+
+        await loadCascadeForEmergency(select.value);
+
+      } catch (err) {
+        select.innerHTML = `<option value="">Failed to load emergencies</option>`;
+        console.error(err);
+      }
+    }
+
+    async function reloadCurrentCascade() {
+      if (currentEmergencyId) {
+        await loadCascadeForEmergency(currentEmergencyId);
+        showToast("Cascade data refreshed", "info");
+      }
+    }
+
+    async function loadCascadeForEmergency(reqId) {
+      if (!reqId) return;
+      currentEmergencyId = reqId;
+
+      window.history.replaceState(null, "", `cascade.html?id=${reqId}`);
+      document.getElementById("link-match").href = `matching.html?id=${reqId}`;
+      document.getElementById("link-track").href = `tracker.html?id=${reqId}`;
+
+      const container = document.getElementById("cascade-rounds-container");
+      container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">Evaluating cascade rounds...</p>`;
+
+      try {
+        const em = await LifeLinkAPI.getEmergencyRequest(reqId);
+        document.getElementById("cas-id-badge").innerText = `Emergency #${em.id}`;
+        document.getElementById("cas-urgency-badge").innerText = em.urgency;
+        document.getElementById("cas-status-badge").innerText = em.status;
+        document.getElementById("cas-hospital-title").innerText = `${em.hospital_name} (${em.hospital_city || 'Coimbatore'})`;
+        document.getElementById("cas-patient-subtitle").innerText = `Patient: ${em.patient_name} | Blood Group: ${em.blood_group} | Contact: ${em.contact_phone}`;
+
+        // Fetch cascade from backend
+        const cas = await LifeLinkAPI.getCascade(reqId);
+
+        document.getElementById("stat-needed").innerText = cas.units_required;
+        document.getElementById("stat-matched").innerText = cas.units_matched;
+        document.getElementById("stat-round").innerText = `Round ${cas.current_round}`;
+        document.getElementById("stat-fallback").innerText = cas.blood_bank_backup_recommended ? "RECOMMENDED" : "NOT NEEDED";
+        document.getElementById("stat-fallback").style.color = cas.blood_bank_backup_recommended ? "#ef4444" : "#10b981";
+
+        // Render standard round templates
+        const standardRounds = [
+          { round: 1, label: "0–5 km", desc: "Immediate hospital vicinity. Rapid response radius." },
+          { round: 2, label: "5–15 km", desc: "Extended city perimeter. Reached when immediate radius needs more donors." },
+          { round: 3, label: "15–25 km", desc: "Metro zone & suburban perimeter. Broad voluntary donor mobilization." },
+          { round: 4, label: "25+ km / Fallback", desc: "Blood bank reserve & regional inventory emergency transfer." }
+        ];
+
+        container.innerHTML = "";
+        const executedRoundsMap = {};
+        (cas.rounds || []).forEach(r => {
+          executedRoundsMap[r.round] = r;
+        });
+
+        standardRounds.forEach(sr => {
+          const executed = executedRoundsMap[sr.round];
+          const isCurrent = cas.current_round === sr.round;
+          const isCompleted = executed && !isCurrent;
+          const isPending = !executed && sr.round > cas.current_round;
+
+          const box = document.createElement("div");
+          let stateClass = "";
+          let badgeHtml = "";
+
+          if (executed) {
+            if (isCurrent && cas.status === "TARGET_REACHED") {
+              stateClass = "round-step-box success";
+              badgeHtml = `<span class="badge badge-green">Target Fulfilled (${executed.donors_found} Donors)</span>`;
+            } else if (isCurrent) {
+              stateClass = "round-step-box active";
+              badgeHtml = `<span class="badge badge-blue">Active Search (${executed.donors_found} Donors)</span>`;
+            } else {
+              stateClass = "round-step-box waiting";
+              badgeHtml = `<span class="badge badge-amber">Completed & Expanded (${executed.donors_found} Donors)</span>`;
+            }
+          } else {
+            stateClass = "round-step-box";
+            badgeHtml = `<span class="badge" style="background: #e2e8f0; color: #64748b;">Standby</span>`;
+          }
+
+          box.className = stateClass;
+          box.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.15rem; font-weight: 800; color: var(--primary);">Round ${sr.round}</span>
+                <span style="font-weight: 700; color: var(--text-main);">(${sr.label})</span>
+              </div>
+              ${badgeHtml}
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 0.6rem;">${sr.desc}</p>
+            ${executed ? `
+              <div style="display: flex; gap: 1.2rem; font-size: 0.84rem; background: white; padding: 0.5rem 0.8rem; border-radius: 6px; border: 1px solid var(--border-color); flex-wrap: wrap;">
+                <div>Donors Found: <strong>${executed.donors_found}</strong></div>
+                <div>Status: <strong>${executed.status}</strong></div>
+                <div>Notifications Sent: <strong>${executed.donors_found} Dispatched</strong></div>
+                <div>Accepted: <strong>${em.units_accepted || 0} / ${em.units_needed}</strong></div>
+              </div>
+            ` : `
+              <div style="font-size: 0.82rem; color: var(--text-light); font-style: italic;">
+                Search will expand here if previous perimeters do not provide adequate units.
+              </div>
+            `}
+          `;
+          container.appendChild(box);
+        });
+
+        // Render Activity Timeline
+        const timelineEl = document.getElementById("cascade-timeline-list");
+        timelineEl.innerHTML = "";
+
+        const events = [
+          { time: "T+0m", icon: "🚨", title: `Emergency #${em.id} Created`, text: `Request registered for ${em.units_needed} unit(s) of ${em.blood_group} at ${em.hospital_name}.` },
+          { time: "T+1s", icon: "📡", title: "Round 1 Triggered (0–5 km)", text: `Immediate radius search initiated. Found ${cas.rounds[0]?.donors_found || 0} compatible donors. Dispatched notifications.` }
+        ];
+
+        if (cas.current_round >= 2) {
+          events.push({
+            time: "T+30s",
+            icon: "🔄",
+            title: "Round 2 Expanded (5–15 km)",
+            text: `Perimeter expanded to city radius. Additional donors alerted.`
+          });
+        }
+
+        if (cas.current_round >= 3) {
+          events.push({
+            time: "T+1m",
+            icon: "🔄",
+            title: "Round 3 Expanded (15–25 km)",
+            text: `Metro search perimeter engaged.`
+          });
+        }
+
+        if (cas.blood_bank_backup_recommended) {
+          events.push({
+            time: "T+2m",
+            icon: "🏥",
+            title: "Round 4 / Blood Bank Fallback Advised",
+            text: `High requirement detected. Partner blood banks notified for cross-matching reservation.`
+          });
+        }
+
+        if (em.units_accepted > 0) {
+          events.push({
+            time: "Live",
+            icon: "✅",
+            title: "Donor Willingness Recorded",
+            text: `${em.units_accepted} unit(s) accepted by voluntary donors.`
+          });
+        }
+
+        events.forEach(ev => {
+          const item = document.createElement("div");
+          item.className = "timeline-event-item";
+          item.innerHTML = `
+            <span style="font-size: 1.1rem;">${ev.icon}</span>
+            <div style="flex: 1;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="color: var(--text-main); font-size: 0.92rem;">${ev.title}</strong>
+                <span style="font-size: 0.75rem; color: var(--text-light); font-weight: 600;">${ev.time}</span>
+              </div>
+              <p style="color: var(--text-muted); font-size: 0.84rem; margin-top: 0.2rem;">${ev.text}</p>
+            </div>
+          `;
+          timelineEl.appendChild(item);
+        });
+
+      } catch (err) {
+        container.innerHTML = `<p style="color: #dc2626;">Failed to load cascade: ${err.message}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>

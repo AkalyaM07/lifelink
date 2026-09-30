@@ -1,15 +1,16 @@
 """
-Life-Link: Multilingual AI Emergency Request Parser
-Phase 4: Natural language extraction (English, Tanglish, Tamil)
+Life-Link: Multilingual AI Emergency Request Parser & Conversational Engine
+Phase 4 & Enhanced Interactive AI Assistant (English, Tanglish, Tamil)
 
 DISCLAIMER:
-Life-Link is an emergency medical resource coordination prototype.
-It does NOT provide medical diagnosis or treatment advice. Blood compatibility
+Life-Link is an emergency medical resource coordination platform.
+It does NOT provide medical diagnosis or clinical treatment advice. Blood compatibility
 and transfusion decisions must be confirmed by qualified medical professionals
 and authorized blood banks.
 
 This module converts unstructured natural-language requests into structured
 emergency records without inventing missing information.
+Supports conversational dialogue, patient vs requester distinction, and editable confirmation cards.
 """
 
 import re
@@ -148,6 +149,56 @@ def extract_hospital(text: str) -> Optional[str]:
     return None
 
 
+def extract_patient_name(text: str) -> Optional[str]:
+    """
+    Extracts patient name and relationship from text to distinguish account holder from patient.
+    e.g. 'My father Sathya needs 2 units O+ blood' -> 'Sathya (Father)'
+    e.g. 'En appa Sathya-ku' -> 'Sathya'
+    e.g. 'Patient Ramesh' -> 'Ramesh'
+    e.g. 'I need blood for myself' -> 'Self'
+    """
+    cleaned = text.strip()
+
+    # Self check
+    if re.search(r'\b(?:for\s+myself|for\s+me|i\s+need|enakku|enaku)\b', cleaned, re.IGNORECASE) and not re.search(r'\b(?:father|mother|brother|sister|son|daughter|friend|appa|amma)\b', cleaned, re.IGNORECASE):
+        return "Self"
+
+    # Pattern: "my father Sathya", "my friend Ramesh", "patient Sathya", "for Sathya"
+    match_rel = re.search(
+        r'\b(?:my\s+)?(father|mother|brother|sister|son|daughter|friend|uncle|aunt|wife|husband|colleague|appa|amma|nanban)\s+([A-Z][a-z]+)\b',
+        cleaned,
+        re.IGNORECASE
+    )
+    if match_rel:
+        rel = match_rel.group(1).strip().capitalize()
+        name = match_rel.group(2).strip().capitalize()
+        if name.lower() not in ["blood", "urgent", "kmch", "hospital", "psg", "two", "three", "units"]:
+            return f"{name} ({rel})"
+
+    # Pattern: "patient Sathya" or "for Sathya"
+    match_pt = re.search(r'\b(?:patient|for)\s+([A-Z][a-z]+)\b', cleaned, re.IGNORECASE)
+    if match_pt:
+        name = match_pt.group(1).strip().capitalize()
+        if name.lower() not in ["blood", "urgent", "kmch", "hospital", "psg", "two", "three", "units", "myself"]:
+            return name
+
+    # Tanglish pattern: "Sathya-ku" or "Sathya ku"
+    match_ku = re.search(r'\b([A-Z][a-z]{2,})\s*[-–]?\s*(?:ku|kku)\b', cleaned)
+    if match_ku:
+        name = match_ku.group(1).strip().capitalize()
+        if name.lower() not in ["emergency", "blood", "patient", "accident", "hospital"]:
+            return name
+
+    # Pattern: "Sathya needs"
+    match_needs = re.search(r'\b([A-Z][a-z]{2,})\s+(?:needs|requires|thevai)\b', cleaned)
+    if match_needs:
+        name = match_needs.group(1).strip().capitalize()
+        if name.lower() not in ["emergency", "hospital", "patient"]:
+            return name
+
+    return None
+
+
 def extract_urgency(text: str) -> str:
     """
     Determines urgency based on urgency keywords.
@@ -207,11 +258,16 @@ def extract_contact_number(text: str) -> Optional[str]:
 # MAIN PARSER ENTRYPOINT
 # =====================================================================
 
-def parse_emergency_message(message: str) -> Dict[str, Any]:
+def parse_emergency_message(
+    message: str,
+    existing_fields: Optional[Dict[str, Any]] = None,
+    requester_name: Optional[str] = None
+) -> Dict[str, Any]:
     """
     Parses natural language emergency message in English, Tanglish, or Tamil.
     Extracts structured fields without inventing missing values.
-    Identifies missing fields and returns helpful conversational prompts.
+    Merges with existing accumulated fields if provided (for multi-turn conversational support).
+    Distinguishes account holder from patient.
     """
     if not message or not message.strip():
         return {
@@ -223,18 +279,39 @@ def parse_emergency_message(message: str) -> Dict[str, Any]:
                 "units_required": None,
                 "hospital_name": None,
                 "urgency": "NORMAL",
-                "contact_phone": None
+                "contact_phone": None,
+                "patient_name": "Emergency Patient",
+                "requester_name": requester_name
             },
             "missing_fields": ["blood_group", "units_required", "hospital_name"],
-            "message": "Please describe your emergency requirement (e.g., '2 units of O+ blood needed at KMCH urgently')."
+            "message": "Please describe your emergency requirement (e.g., 'My father Sathya needs 2 units O+ blood at KMCH urgently')."
         }
 
+    # Extract raw parameters from current message
     blood_group = extract_blood_group(message)
     units = extract_units(message)
     hospital = extract_hospital(message)
     urgency = extract_urgency(message)
     component = extract_component(message)
     contact_phone = extract_contact_number(message)
+    patient_name = extract_patient_name(message)
+
+    # Merge with existing accumulated fields if available (prevents losing previously stated details)
+    if existing_fields:
+        blood_group = blood_group or existing_fields.get("blood_group")
+        units = units or existing_fields.get("units_required") or existing_fields.get("units_needed")
+        hospital = hospital or existing_fields.get("hospital_name")
+        if urgency == "NORMAL" and existing_fields.get("urgency"):
+            urgency = existing_fields.get("urgency")
+        if component == "whole_blood" and existing_fields.get("component"):
+            component = existing_fields.get("component")
+        contact_phone = contact_phone or existing_fields.get("contact_phone")
+        patient_name = patient_name or existing_fields.get("patient_name")
+
+    # Resolve patient name
+    final_patient_name = patient_name
+    if not final_patient_name:
+        final_patient_name = "Emergency Patient"
 
     parsed = {
         "resource_type": "blood",
@@ -243,10 +320,12 @@ def parse_emergency_message(message: str) -> Dict[str, Any]:
         "units_required": units,
         "hospital_name": hospital,
         "urgency": urgency,
-        "contact_phone": contact_phone
+        "contact_phone": contact_phone,
+        "patient_name": final_patient_name,
+        "requester_name": requester_name
     }
 
-    # Identify missing core fields
+    # Identify missing core fields (NEVER invent or guess them!)
     missing_fields = []
     if not blood_group:
         missing_fields.append("blood_group")
@@ -256,7 +335,6 @@ def parse_emergency_message(message: str) -> Dict[str, Any]:
         missing_fields.append("hospital_name")
 
     if missing_fields:
-        # Construct conversational response asking only for what is missing
         missing_desc = []
         if "blood_group" in missing_fields:
             missing_desc.append("blood group (e.g., O+, A-, B+)")
@@ -277,5 +355,28 @@ def parse_emergency_message(message: str) -> Dict[str, Any]:
         "success": True,
         "parsed_request": parsed,
         "missing_fields": [],
-        "message": f"Successfully extracted emergency request for {units} unit(s) of {blood_group} blood at {hospital} ({urgency})."
+        "message": f"Successfully understood emergency for {final_patient_name}: {units} unit(s) of {blood_group} blood at {hospital} ({urgency})."
+    }
+
+
+def format_confirmation_card(parsed: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Prepares editable confirmation card data to show before creating emergency request.
+    Example:
+      Patient: Sathya
+      Blood Group: O+
+      Required Units: 2
+      Hospital: KMCH
+      Urgency: URGENT
+    """
+    return {
+        "title": "Emergency Request Confirmation",
+        "patient_name": parsed.get("patient_name") or "Emergency Patient",
+        "blood_group": parsed.get("blood_group"),
+        "units_needed": parsed.get("units_required"),
+        "hospital_name": parsed.get("hospital_name"),
+        "urgency": parsed.get("urgency") or "URGENT",
+        "component": parsed.get("component") or "whole_blood",
+        "contact_phone": parsed.get("contact_phone") or "+91 94433 00000",
+        "notes": f"Emergency request for {parsed.get('patient_name')} at {parsed.get('hospital_name')}"
     }

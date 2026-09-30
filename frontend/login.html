@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login & Sign Up | LIFE-LINK</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .auth-container {
+      max-width: 480px;
+      margin: 2.5rem auto;
+      padding: 0 1rem;
+    }
+    .auth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+    .auth-header {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      padding: 2rem 1.5rem 1.25rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .auth-header .logo-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      display: inline-block;
+    }
+    .auth-header h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 0.25rem;
+    }
+    .auth-header p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+    .auth-body {
+      padding: 1.75rem 1.5rem;
+    }
+    .auth-tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      background: var(--bg-alt);
+      padding: 4px;
+      border-radius: var(--border-radius-sm);
+      margin-bottom: 1.5rem;
+    }
+    .auth-tab-btn {
+      flex: 1;
+      padding: 0.65rem 0.5rem;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    .auth-tab-btn.active {
+      background: white;
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .auth-footer-notice {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-light);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Minimal Header Bar -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">
+      <span>❤️ LIFE-LINK</span>
+      <span class="brand-badge">AUTHENTICATION</span>
+    </a>
+    <div style="font-size: 0.86rem; color: var(--text-muted); font-weight: 600;">
+      Emergency Resource Network
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container">
+    <div class="auth-container">
+      <div class="auth-card">
+        
+        <div class="auth-header">
+          <div class="logo-icon">🩸</div>
+          <h1>Welcome to Life-Link</h1>
+          <p>Sign in or register to access the emergency coordination network</p>
+        </div>
+
+        <div class="auth-body">
+          <!-- Toggle Tabs -->
+          <div class="auth-tab-bar">
+            <button type="button" class="auth-tab-btn active" id="tab-login-btn" onclick="showAuthTab('login')">
+              Sign In
+            </button>
+            <button type="button" class="auth-tab-btn" id="tab-register-btn" onclick="showAuthTab('register')">
+              Create Account
+            </button>
+          </div>
+
+          <!-- Login Form -->
+          <form id="form-login" class="auth-form" onsubmit="handleLoginSubmit(event)">
+            <div class="form-group">
+              <label class="form-label" for="login-email">Email Address</label>
+              <input type="email" id="login-email" class="form-control" required placeholder="name@example.com" autocomplete="email">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="login-pwd">Password</label>
+              <input type="password" id="login-pwd" class="form-control" required placeholder="••••••••" autocomplete="current-password">
+            </div>
+
+            <button type="submit" id="btn-login-submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 1rem; font-weight: 700; margin-top: 0.5rem;">
+              Sign In ➔
+            </button>
+
+            <div style="text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
+              Don't have an account? <a href="javascript:void(0)" onclick="showAuthTab('register')" style="color: var(--primary); font-weight: 700; text-decoration: none;">Sign Up here</a>
+            </div>
+          </form>
+
+          <!-- Register Form -->
+          <form id="form-register" class="auth-form" onsubmit="handleRegisterSubmit(event)" style="display: none;">
+            <div class="form-group">
+              <label class="form-label" for="reg-name">Full Name</label>
+              <input type="text" id="reg-name" class="form-control" required placeholder="e.g. John Doe">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="reg-email">Email Address</label>
+              <input type="email" id="reg-email" class="form-control" required placeholder="john@example.com" autocomplete="email">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="reg-phone">Phone Number</label>
+              <input type="text" id="reg-phone" class="form-control" required placeholder="+91 94433 12345">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="reg-pwd">Password</label>
+              <input type="password" id="reg-pwd" class="form-control" required minlength="4" placeholder="At least 4 characters" autocomplete="new-password">
+            </div>
+
+            <div class="grid-2" style="gap: 0.75rem;">
+              <div class="form-group">
+                <label class="form-label" for="reg-blood">Blood Group</label>
+                <select id="reg-blood" class="form-control">
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="reg-location">City / Area</label>
+                <input type="text" id="reg-location" class="form-control" value="Coimbatore" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="reg-avail">Voluntary Donor Status</label>
+              <select id="reg-avail" class="form-control">
+                <option value="AVAILABLE">AVAILABLE (Ready to donate if emergency matches)</option>
+                <option value="UNAVAILABLE">UNAVAILABLE (Requesting only / Temporarily unavailable)</option>
+              </select>
+            </div>
+
+            <button type="submit" id="btn-reg-submit" class="btn btn-emergency" style="width: 100%; padding: 0.75rem; font-size: 1rem; font-weight: 700; margin-top: 0.5rem;">
+              Create Account ➔
+            </button>
+
+            <div style="text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
+              Already have an account? <a href="javascript:void(0)" onclick="showAuthTab('login')" style="color: var(--primary); font-weight: 700; text-decoration: none;">Sign In here</a>
+            </div>
+          </form>
+
+          <div class="auth-footer-notice">
+            🔒 Single Normal User Account: One account allows requesting emergency blood, responding as a donor, and viewing notification updates.
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Life-Link • AI-Powered Emergency Medical Resource & Donor Coordination Network</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      // If user is already logged in, redirect straight to Home
+      const user = await LifeLinkAuth.getCurrentUser();
+      if (user) {
+        window.location.href = "index.html";
+      }
+    });
+
+    function showAuthTab(tab) {
+      const loginForm = document.getElementById("form-login");
+      const regForm = document.getElementById("form-register");
+      const loginTab = document.getElementById("tab-login-btn");
+      const regTab = document.getElementById("tab-register-btn");
+
+      if (tab === "register") {
+        loginForm.style.display = "none";
+        regForm.style.display = "flex";
+        loginTab.classList.remove("active");
+        regTab.classList.add("active");
+        document.getElementById("reg-name").focus();
+      } else {
+        regForm.style.display = "none";
+        loginForm.style.display = "flex";
+        regTab.classList.remove("active");
+        loginTab.classList.add("active");
+        document.getElementById("login-email").focus();
+      }
+    }
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const btn = document.getElementById("btn-login-submit");
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-pwd").value;
+
+      if (!email || !password) {
+        showToast("Please provide both email and password.", "warning");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "Signing in...";
+
+      try {
+        const user = await LifeLinkAPI.loginUser(email, password);
+        LifeLinkAuth.setCurrentUser(user);
+        showToast(`Welcome back, ${user.name}!`, "success");
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 350);
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerText = "Sign In ➔";
+        showToast(err.message || "Invalid email or password", "error");
+      }
+    }
+
+    async function handleRegisterSubmit(event) {
+      event.preventDefault();
+      const btn = document.getElementById("btn-reg-submit");
+      const name = document.getElementById("reg-name").value.trim();
+      const email = document.getElementById("reg-email").value.trim();
+      const phone = document.getElementById("reg-phone").value.trim();
+      const password = document.getElementById("reg-pwd").value;
+      const blood_group = document.getElementById("reg-blood").value;
+      const location = document.getElementById("reg-location").value.trim() || "Coimbatore";
+      const availability = document.getElementById("reg-avail").value || "AVAILABLE";
+
+      if (!name || !email || !phone || !password) {
+        showToast("Please fill in all required fields.", "warning");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "Creating account...";
+
+      try {
+        const payload = {
+          name,
+          email,
+          phone,
+          password,
+          blood_group,
+          location,
+          availability,
+          donation_type: "whole_blood"
+        };
+        const newUser = await LifeLinkAPI.registerUser(payload);
+        LifeLinkAuth.setCurrentUser(newUser);
+        showToast(`Account created for ${newUser.name}!`, "success");
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 350);
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerText = "Create Account ➔";
+        showToast(err.message || "Registration failed", "error");
+      }
+    }
+  </script>
+</body>
+</html>
